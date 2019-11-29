@@ -17,7 +17,7 @@ set (CMAKE_CXX_STANDARD 11)
 
 # Define the project name. 
 
-project ( hlsyn )
+project ( hlsyn_project )
 
 # Add a subdirectory to the project. The CMakeLists.txt file in that subdirectory
 # will be used for further setting up the project.
