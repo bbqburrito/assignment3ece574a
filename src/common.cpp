@@ -52,6 +52,8 @@ void Common::operator = (const Common& to_copy)
     vertices = to_copy.getVertices();
 }
 
+
+
 void Common::add_edge(Operation u, Operation v)
 {
     bool exists = false;        //temp to test whether need to create new row
@@ -76,7 +78,7 @@ void Common::add_edge(Operation u, Operation v)
 
     //reset temporary variables for next element
     exists = false;
-    to_row.erase(to_row.begin(), to_row.end());
+    to_row.clear();
     //place next element adjacency list
     for(auto i: CDFG)
     {
@@ -94,8 +96,7 @@ void Common::add_edge(Operation u, Operation v)
         CDFG.push_back(to_row);
     }
 
-    //CDFG[i].push_back(v);
-    //CDFG[v].push_back(u);
+    
 }
 
 void Common::displayCDFG() const
