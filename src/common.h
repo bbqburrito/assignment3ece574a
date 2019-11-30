@@ -14,8 +14,14 @@ class Operation
     public:
     Operation();
     Operation(const Operation& to_copy);
-    void operator = (const Operation& to_copy);
+    void operator= (const Operation& to_copy);
+    inline bool operator== (const Operation& to_compare){
+        return (to_compare.getNumber() == number);
+    }
     ~Operation();
+    inline int getNumber() const{
+        return number;
+    }
     inline int getType() const{
         return type;
     }
@@ -27,6 +33,15 @@ class Operation
     }
     inline int getCycles() const{
         return cycles;
+    }
+    inline int getAlap() const{
+        return alap;
+    }
+    inline int getAsap() const{
+        return asap;
+    }
+    inline void setNumber(int to_set){
+        number = to_set;
     }
     inline void setType(int to_set){
         type = to_set;
@@ -40,14 +55,23 @@ class Operation
     inline void setCycles(int to_set){
         cycles = to_set;
     }
+    inline void setAlap(int to_set){
+        alap = to_set;
+    }
+    inline void setAsap(int to_set){
+        asap = to_set;
+    }
     void add_input(int to_add);
     void list_inputs() const;
 
     protected:
+    int number;
     int type;
     vector<int> inputs;
     int output;
     int cycles;
+    int alap;
+    int asap;
 
 };
 
