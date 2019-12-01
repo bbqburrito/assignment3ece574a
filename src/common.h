@@ -95,6 +95,18 @@ class Common
     inline void setCDFG(vector<vector<Operation>> to_set){
         CDFG = to_set;
     }
+    inline Operation getV0() const {
+        return v0;
+    }
+    inline Operation getVn() const {
+        return v_n;
+    }
+    inline void setV0(Operation to_set) {
+        v0 = to_set;
+    }
+    inline void setVn(Operation to_set) {
+        v_n = to_set;
+    }
     void addRow();
     void buildCDFG();
     void addVertex(Operation to_add);
@@ -105,6 +117,8 @@ class Common
 
     vector<vector<Operation>> CDFG;
     vector<Operation> vertices;
+    Operation v0;                   //begin null node - may not need
+    Operation v_n;                  //end null node
 
 
 

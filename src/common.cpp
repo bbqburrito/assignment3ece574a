@@ -54,59 +54,41 @@ Common::Common(const Common& to_copy)
 {
     CDFG = to_copy.getCDFG();
     vertices = to_copy.getVertices();
+    v0 = to_copy.getV0();
+    v_n = to_copy.getVn();
 }
 
 void Common::operator = (const Common& to_copy)
 {
     CDFG = to_copy.getCDFG();
     vertices = to_copy.getVertices();
+    v0 = to_copy.getV0();
+    v_n = to_copy.getVn();
 }
 
 
-
-void Common::add_edge(Operation u, Operation v)
+//add edge to directed graph
+void Common::add_edge(Operation from, Operation to)
 {
     bool exists = false;        //temp to test whether need to create new row
     vector<Operation> to_row;   //temp to create new row
     //place first element adjacency list
     for(auto i: CDFG)
     {
-        if(i.front() == u)  //add v to adjacency list for u
+        if(i.front() == from)  //add v to adjacency list for u
         {
             exists = true;
-            i.push_back(v);
+            i.push_back(to);
         }
         
     }
     //if not in graph, add new row to graph
     if(!exists)
     {
-        to_row.push_back(u);
-        to_row.push_back(v);
+        to_row.push_back(from);
+        to_row.push_back(to);
         CDFG.push_back(to_row);
-    }
-
-    //reset temporary variables for next element
-    exists = false;
-    to_row.clear();
-    //place next element adjacency list
-    for(auto i: CDFG)
-    {
-        if(i.front() == v)  //add u to adjacency list for vkk
-        {
-            exists = true;
-            i.push_back(u);
-        }
-    }
-    //if not in graph, add new row to graph
-    if(!exists)
-    {
-        to_row.push_back(v);
-        to_row.push_back(u);
-        CDFG.push_back(to_row);
-    }
-
-    
+    }    
 }
 
 void Common::addRow()
@@ -152,6 +134,7 @@ void Common::buildCDFG()
     vector<string> v_next_inputs;   //hold inputs for next level
     vector<string> final_outputs;   //hold outputs of netlist
     vector<string> to_outputs;  //hold all outputs
+    vector<Operation> level;    //hold nodes for each level
     
     //find all outputs
     for (auto i: vertices)
@@ -174,33 +157,59 @@ void Common::buildCDFG()
     is_present = false;
 
     //find final outputs
-    for(auto i: to_outputs)         //for each output
+    for(decltype(to_outputs.size()) it = 0; it < to_outputs.size(); ++it)         //for each output
     {
         for(auto j: vertices)       //for each vertex
         {
             for(auto k: j.getInputs())  //for each input in vertex
             {
-                if(k == i)
-                {
-                    is_present = true;
-                    
-                }
-            }
-        }
-    }
-    for(auto i: vertices)           //for each vertex
-    {
-        for(auto j: i.getInputs())  //for each input in vertex
-        {
-            for(auto k: to_outputs) //for each output
-            {
-                if(k == j)
+                if(k == to_outputs[it])
                 {
                     is_present = true;
                     break;
                 }
             }
-            final_outputs.push_back(k)
+        }
+        if(!is_present)     //if not an input, place in final_outputs and remove from to_outputs
+        {
+            final_outputs.push_back(to_outputs[it]);
+            to_outputs.erase(remove(to_outputs.begin(), to_outputs.end(), to_outputs[it]), to_outputs.end());
+        }
+        is_present = false;             //reset present test
+    }
+
+    is_present = false;
+
+    //build v_n
+    for(auto i: final_outputs)
+    {
+        v_n.add_input(i);
+        v_n.setNumber(0);           
+        for(auto j: vertices)                       
+        {
+            if(j.getNumber() > v_n.getNumber())         //set v_n identifier greater than all other nodes
+            {
+                v_n.setNumber(j.getNumber() + 1);
+            }
+        }
+    }
+    
+    //build final nodes in CDFG
+    for (auto i: final_outputs)
+    {
+        for (auto j: vertices)
+        {
+            if(i == j.getOutput())
+            {
+                add_edge(j, v_n);
+                for(auto k: j.getInputs())      //fill v_inputs
+                {
+                    if(find(v_inputs.begin(), v_inputs.end(), k) != v_inputs.begin())
+                    {
+                        v_inputs.push_back(k);
+                    }
+                }
+            }
         }
     }
 
@@ -225,18 +234,20 @@ void Common::buildCDFG()
     }
 
     is_present = false;
-    v_inputs = v0_inputs;
-
-    //iterate through each level until find final outputs
-    while(!to_outputs.empty())
+    
+    //iterate backwords through each level until find v0, 
+    while(!v_inputs.empty())
     {
         for(auto i: vertices)   //iterate through all vertices
                                 //if any input of that vertex is on output list
                                 //place vertex in CDFG
         {
-            for(auto j: i)
+            for(auto j: i.getInputs())  //
             {
                 for(auto k: to_outputs)
+                {
+                    if()
+                }
 
             }
         }
