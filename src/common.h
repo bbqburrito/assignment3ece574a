@@ -8,14 +8,15 @@
 
 using std::vector;
 
-
+//Operations are vertices of CDFG
 class Operation
 {
     public:
     Operation();
     Operation(const Operation& to_copy);
     void operator= (const Operation& to_copy);
-    inline bool operator== (const Operation& to_compare){
+    inline bool operator== (const Operation& to_compare){   //inline == comparator. 
+                                                            //checks Operation numbers to see if equal)
         return (to_compare.getNumber() == number);
     }
     ~Operation();
@@ -25,10 +26,8 @@ class Operation
     inline int getType() const{
         return type;
     }
-    inline vector<int> getInputs() const{
-        return inputs;
-    }
-    inline int getOutput() const{
+    
+    inline string getOutput() const{
         return output;
     }
     inline int getCycles() const{
@@ -46,10 +45,8 @@ class Operation
     inline void setType(int to_set){
         type = to_set;
     }
-    inline void setInputs(vector<int> to_set){
-        inputs = to_set;
-    }
-    inline void setOutput(int to_set){
+    
+    inline void setOutput(string to_set){
         output = to_set;
     }
     inline void setCycles(int to_set){
@@ -61,17 +58,19 @@ class Operation
     inline void setAsap(int to_set){
         asap = to_set;
     }
-    void add_input(int to_add);
+    vector<string> getInputs() const;
+    void setInputs(vector<string> to_set);
+    void add_input(string to_add);
     void list_inputs() const;
 
     protected:
-    int number;
-    int type;
-    vector<int> inputs;
-    int output;
-    int cycles;
-    int alap;
-    int asap;
+    int number;             // int identifier for operation node
+    int type;               // type of operation - type is number of cycles for operation
+    vector<string> inputs;  // inputs to the operation
+    string output;             // outputs of the operation
+    int cycles;             // number of cycles for operation. same as type, so not used
+    int alap;               // alap schedule time for operation
+    int asap;               // asap scedule time for operation
 
 };
 
@@ -87,22 +86,25 @@ class Common
     inline vector<vector<Operation>>getCDFG() const{
         return CDFG;
     }
-    inline vector<int> getVertices() const{
+    inline vector<Operation> getVertices() const{
         return vertices;
     }
-    inline void setVertices(vector<int> to_set){
+    inline void setVertices(vector<Operation> to_set){
         vertices = to_set;
     }
     inline void setCDFG(vector<vector<Operation>> to_set){
         CDFG = to_set;
     }
+    void addRow();
+    void buildCDFG();
+    void addVertex(Operation to_add);
     
     
     
     protected:
 
     vector<vector<Operation>> CDFG;
-    vector<int> vertices;
+    vector<Operation> vertices;
 
 
 
