@@ -68,7 +68,7 @@ void Common::add_edge(Operation u, Operation v)
         }
         
     }
-    //if not in graph, add to graph
+    //if not in graph, add new row to graph
     if(!exists)
     {
         to_row.push_back(u);
@@ -88,7 +88,7 @@ void Common::add_edge(Operation u, Operation v)
             i.push_back(u);
         }
     }
-    //if not in graph, add to graph
+    //if not in graph, add new row to graph
     if(!exists)
     {
         to_row.push_back(v);
