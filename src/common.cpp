@@ -91,11 +91,6 @@ void Common::add_edge(Operation from, Operation to)
     }    
 }
 
-void Common::addRow()
-{
-
-}
-
 void Common::displayCDFG() const
 {
     for(auto i: CDFG)

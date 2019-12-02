@@ -107,7 +107,6 @@ class Common
     inline void setVn(Operation to_set) {
         v_n = to_set;
     }
-    void addRow();
     void buildCDFG();
     void addVertex(Operation to_add);
     
