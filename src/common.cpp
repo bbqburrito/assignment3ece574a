@@ -107,6 +107,7 @@ void Common::displayCDFG() const
     }
 }
 
+//add to vertices vector
 void Common::addVertex(Operation to_add)
 {
     bool is_present = false;
