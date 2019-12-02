@@ -3,10 +3,19 @@
 using namespace std;
 using std::string;
 
-Operation::Operation():number(0), type(0), inputs {}, output(0), cycles(0), alap(0), asap(0) {}
+Operation::~Operation()
+{}
+
+Operation::Operation():number(0), type(""), inputs {}, output(""), cycles(0), alap(0), asap(0) {}
+
+Operation::Operation(int to_number, string to_type, vector<string> to_inputs, string to_output,
+                    int to_cycles, int to_alap, int to_asap):number(to_number), type(to_type), 
+                    inputs(to_inputs), output(to_output), cycles(to_cycles), alap(to_alap), 
+                    asap(to_asap)  {}
 
 Operation::Operation(const Operation& to_copy)
 {
+    number = to_copy.getNumber();
     type = to_copy.getType();
     inputs = to_copy.getInputs();
     output = to_copy.getOutput();
@@ -17,6 +26,7 @@ Operation::Operation(const Operation& to_copy)
 
 void Operation::operator = (const Operation& to_copy)
 {
+    number = to_copy.getNumber();
     type = to_copy.getType();
     inputs = to_copy.getInputs();
     output = to_copy.getOutput();
@@ -49,6 +59,9 @@ void Operation::list_inputs() const
 }
 
 Common::Common():CDFG{}, vertices{} {}
+
+Common::~Common()
+{}
 
 Common::Common(const Common& to_copy)
 {
@@ -97,8 +110,20 @@ void Common::displayCDFG() const
     {
         for (auto j: i)
         {
-            cout << j.getNumber() << endl;
+            cout << j.getNumber() << " ";
         }
+        cout << endl;
+    }
+    cout << endl;
+}
+
+void Common::displayVertices() const
+{
+    for(auto i: vertices)
+    {
+        cout << i.getNumber() << '\t' << i.getType() << '\t';
+        cout << i.getOutput() << '\t' << i.getInputs()[0] << ',';
+        cout << i.getInputs()[1] << '\t' << endl;
     }
 }
 
@@ -227,7 +252,7 @@ void Common::buildCDFG()
                 for(auto k: j.getInputs())      //fill v_inputs
                 {
                     if((find(v_inputs.begin(), v_inputs.end(), k) == v_inputs.begin()) &&   //if input is not already in v_inputs and not in v0_inputs, place in v_inputs
-                            (find(v0_inputs.begin(), v0_inputs.end(), k) == v0_inputs.begin))
+                            (find(v0_inputs.begin(), v0_inputs.end(), k) == v0_inputs.begin()))
                     {
                         v_inputs.push_back(k);
                     }

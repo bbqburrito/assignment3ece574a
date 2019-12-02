@@ -7,12 +7,15 @@
 
 
 using std::vector;
+using std::string;
 
 //Operations are vertices of CDFG
 class Operation
 {
     public:
     Operation();
+    Operation(int to_number, string to_type, vector<string> to_inputs, string to_output,
+                    int to_cycles, int to_alap, int to_asap);
     Operation(const Operation& to_copy);
     void operator= (const Operation& to_copy);
     inline bool operator== (const Operation& to_compare){   //inline == comparator. 
@@ -23,7 +26,7 @@ class Operation
     inline int getNumber() const{
         return number;
     }
-    inline int getType() const{
+    inline string getType() const{
         return type;
     }
     
@@ -42,7 +45,7 @@ class Operation
     inline void setNumber(int to_set){
         number = to_set;
     }
-    inline void setType(int to_set){
+    inline void setType(string to_set){
         type = to_set;
     }
     
@@ -65,10 +68,10 @@ class Operation
 
     protected:
     int number;             // int identifier for operation node
-    int type;               // type of operation - type is number of cycles for operation
+    string type;               // type of operation 
     vector<string> inputs;  // inputs to the operation
     string output;             // outputs of the operation
-    int cycles;             // number of cycles for operation. same as type, so not used
+    int cycles;             // number of cycles for operation. 
     int alap;               // alap schedule time for operation
     int asap;               // asap scedule time for operation
 
@@ -109,6 +112,7 @@ class Common
     }
     void buildCDFG();
     void addVertex(Operation to_add);
+    void displayVertices() const;
     
     
     
