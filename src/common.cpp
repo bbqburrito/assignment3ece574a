@@ -125,6 +125,10 @@ void Common::displayVertices() const
         cout << i.getOutput() << '\t' << i.getInputs()[0] << ',';
         cout << i.getInputs()[1] << '\t' << endl;
     }
+
+    cout << v_n.getNumber() << '\t' << v_n.getType() << '\t';
+    cout << v_n.getOutput() << '\t' << v_n.getInputs()[0] << ',';
+    cout << v_n.getInputs()[1] << ',' << v_n.getInputs()[2] << endl;
 }
 
 //add to vertices vector
@@ -194,16 +198,21 @@ void Common::buildCDFG()
                 }
             }
         }
-        if(!is_present)     //if not an input, place in final_outputs and remove from to_outputs
+        if(!is_present)     //if not an input, place in final_outputs 
         {
             final_outputs.push_back(to_outputs[it]);
-            to_outputs.erase(remove(to_outputs.begin(), to_outputs.end(), to_outputs[it]), to_outputs.end());
+            //to_outputs.erase(remove(to_outputs.begin(), to_outputs.end(), to_outputs[it]), to_outputs.end());
         }
         is_present = false;             //reset present test
     }
 
     is_present = false;
 
+    //erase final_outputs from to_outputs
+    for(auto i: final_outputs)
+    {
+        to_outputs.erase(remove(to_outputs.begin(), to_outputs.end(), i), to_outputs.end());
+    }
     
     //find v(0) inputs
     for (auto i: vertices)
@@ -251,8 +260,8 @@ void Common::buildCDFG()
                 level.push_back(j);             //add to level
                 for(auto k: j.getInputs())      //fill v_inputs
                 {
-                    if((find(v_inputs.begin(), v_inputs.end(), k) == v_inputs.begin()) &&   //if input is not already in v_inputs and not in v0_inputs, place in v_inputs
-                            (find(v0_inputs.begin(), v0_inputs.end(), k) == v0_inputs.begin()))
+                    if((find(v_inputs.begin(), v_inputs.end(), k) == v_inputs.end()) &&   //if input is not already in v_inputs and not in v0_inputs, place in v_inputs
+                            (find(v0_inputs.begin(), v0_inputs.end(), k) == v0_inputs.end()))
                     {
                         v_inputs.push_back(k);
                     }
@@ -272,25 +281,25 @@ void Common::buildCDFG()
                                 //if any input of that vertex is in v_inputs
                                 //place vertex in CDFG, place vertex in next_level 
         {
-            if(find(v_inputs.begin(), v_inputs.end(), i.getOutput()) != v_inputs.begin())   //if the vertex's output is in v_inputs
+            if(find(v_inputs.begin(), v_inputs.end(), i.getOutput()) != v_inputs.end())   //if the vertex's output is in v_inputs
             {
                 for(auto j: level)          //find connected node and add edge
                 {
-                    if(find(j.getInputs().begin(), j.getInputs().end(), i.getOutput()) != j.getInputs().begin())
+                    if(find(j.getInputs().begin(), j.getInputs().end(), i.getOutput()) != j.getInputs().end())
                     {
                         add_edge(i, j);
                     }
                 }       
                 //if node is not already in next_level, add to next_level
-                if(find(next_level.begin(), next_level.end(), i) != next_level.begin()) 
+                if(find(next_level.begin(), next_level.end(), i) != next_level.end()) 
                 {
                     next_level.push_back(i);
                 }
                 for(auto k: i.getInputs())          //iterate through node's inputs and place in v_next_inputs
                                                     //unless input is in v0_inputs or already in v_next_inputs
                 {
-                    if((find(v_next_inputs.begin(), v_next_inputs.end(), k) != v_next_inputs.begin()) &&
-                            (find(v0_inputs.begin(), v0_inputs.end(), k) != v0_inputs.begin()))
+                    if((find(v_next_inputs.begin(), v_next_inputs.end(), k) != v_next_inputs.end()) &&
+                            (find(v0_inputs.begin(), v0_inputs.end(), k) != v0_inputs.end()))
                     {
                         v_next_inputs.push_back(k);
                     }

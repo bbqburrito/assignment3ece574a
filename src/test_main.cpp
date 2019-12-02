@@ -11,20 +11,22 @@ int main()
     vector<Operation> ops;
     Operation* temp;
     Common make_graph;
+    int i = 0;
 
     //generate types
     test_types.resize(10);
     for(decltype(test_types.size()) it = 0; it < 10; ++it)
     {
-        if(!it%3)
+        if(!(i%3))
         {
             test_types[it] = "mul";
         }
-        else if(!it%2)
+        else if(!(i%2))
         {
             test_types[it] = "div";
         }
         else test_types[it] = "add";
+        ++i;
     }
 
     //generate inputs
@@ -75,6 +77,7 @@ int main()
 
     make_graph.buildCDFG();
 
+    make_graph.displayVertices();
     make_graph.displayCDFG();
 
     return 0;
