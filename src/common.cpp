@@ -125,6 +125,8 @@ void Common::addVertex(Operation to_add)
     }
 }
 
+//builds CDFG from vertices in Common class. does not throw. 
+//vertices vector must be complete before this funcion is called
 void Common::buildCDFG()
 {
     bool is_inserted = false;
