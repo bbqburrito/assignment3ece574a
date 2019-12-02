@@ -135,6 +135,7 @@ void Common::buildCDFG()
     vector<string> final_outputs;   //hold outputs of netlist
     vector<string> to_outputs;  //hold all outputs
     vector<Operation> level;    //hold nodes for each level
+    vector<Operation> next_level;   //hold nodes for next level
     
     //find all outputs
     for (auto i: vertices)
@@ -180,6 +181,28 @@ void Common::buildCDFG()
 
     is_present = false;
 
+    
+    //find v(0) inputs
+    for (auto i: vertices)
+    {
+        for(auto j: i.getInputs())
+        {
+            for(auto k: to_outputs)
+            {
+                if(j == k)
+                {
+                    is_present = true;
+                    break;
+                }
+            }
+            if(!is_present)
+            {
+                v0_inputs.push_back(j);
+            }
+        }   
+    }
+
+
     //build v_n
     for(auto i: final_outputs)
     {
@@ -201,10 +224,12 @@ void Common::buildCDFG()
         {
             if(i == j.getOutput())
             {
-                add_edge(j, v_n);
+                add_edge(j, v_n);               //add to CDFG
+                level.push_back(j);             //add to level
                 for(auto k: j.getInputs())      //fill v_inputs
                 {
-                    if(find(v_inputs.begin(), v_inputs.end(), k) != v_inputs.begin())
+                    if((find(v_inputs.begin(), v_inputs.end(), k) == v_inputs.begin()) &&   //if input is not already in v_inputs and not in v0_inputs, place in v_inputs
+                            (find(v0_inputs.begin(), v0_inputs.end(), k) == v0_inputs.begin))
                     {
                         v_inputs.push_back(k);
                     }
@@ -213,43 +238,48 @@ void Common::buildCDFG()
         }
     }
 
-    //find v(0) inputs
-    for (auto i: vertices)
-    {
-        for(auto j: i.getInputs())
-        {
-            for(auto k: to_outputs)
-            {
-                if(j == k)
-                {
-                    is_present = true;
-                    break;
-                }
-            }
-            if(!is_present)
-            {
-                v0_inputs.push_back(j);
-            }
-        }   
-    }
-
     is_present = false;
     
     //iterate backwords through each level until find v0, 
-    while(!v_inputs.empty())
+    while(!v_inputs.empty())        //each level, v_inputs is emptied and replaced with 
+                                    //inputs for next level. v0 inputs are not placed in
+                                    //v_inputs next level.
     {
         for(auto i: vertices)   //iterate through all vertices
-                                //if any input of that vertex is on output list
-                                //place vertex in CDFG
+                                //if any input of that vertex is in v_inputs
+                                //place vertex in CDFG, place vertex in next_level 
         {
-            for(auto j: i.getInputs())  //
+            if(find(v_inputs.begin(), v_inputs.end(), i.getOutput()) != v_inputs.begin())   //if the vertex's output is in v_inputs
             {
-                for(auto k: to_outputs)
+                for(auto j: level)          //find connected node and add edge
                 {
-                    if()
+                    if(find(j.getInputs().begin(), j.getInputs().end(), i.getOutput()) != j.getInputs().begin())
+                    {
+                        add_edge(i, j);
+                    }
+                }       
+                //if node is not already in next_level, add to next_level
+                if(find(next_level.begin(), next_level.end(), i) != next_level.begin()) 
+                {
+                    next_level.push_back(i);
                 }
-
+                for(auto k: i.getInputs())          //iterate through node's inputs and place in v_next_inputs
+                                                    //unless input is in v0_inputs or already in v_next_inputs
+                {
+                    if((find(v_next_inputs.begin(), v_next_inputs.end(), k) != v_next_inputs.begin()) &&
+                            (find(v0_inputs.begin(), v0_inputs.end(), k) != v0_inputs.begin()))
+                    {
+                        v_next_inputs.push_back(k);
+                    }
+                }
             }
         }
+        level.clear();                  //clear level and replace with next level
+        level = next_level;
+        next_level.clear();             //clear next_level for next iteration
+        v_inputs.clear();               //clear v_inputs and replace with next level
+        v_inputs = v_next_inputs;
+        v_next_inputs.clear();          //clear v_next_inputs for next iteration
+
     }
 }
