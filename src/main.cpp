@@ -103,7 +103,10 @@ int main(int argc, char* argv[]){
     if(outfile!=NULL&&error==false){
         verilog.open(outfile);
         if(verilog.is_open()){
-//
+         for(i=0;i<mod.size();i++){
+                toplevel.forceschedule(mod, latency);//apply force schedule for each node
+                
+            }
            
             verilog << "module HLSM" <<"("<<"clk,rst";
             for(i=0;i<var.size();i++){
