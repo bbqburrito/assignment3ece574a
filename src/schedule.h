@@ -26,16 +26,24 @@ private:
     string issigned;
     string line;
     string dummy;
-    
+    vector<float>aluprob;//probabilities for ALU
+    vector<float>mulprob;//probabilities for MUL
+    vector<float>divmodprob;//probabilities for DIV/MOD
 public:
     
     
     schedule();
     schedule(string name, string type);
-    void alap(vector<Common> mod,int latency);
-    void asap(vector<Common> mod);
+    void alap(vector<Common> &mod,int latency);
+    void asap(vector<Common> &mod);
     int haspredecessor(vector<Common>mod,string current);
-    int hassuccessor(vector<Common>mod,string current);
+    vector<int> hassuccessor(vector<Common>mod,string current);
+    void probability(vector<Common>&mod,int latency);
+    vector<float> selfForce(Common &tempmod, int start, int end);
+    float successorForce(vector<Common>&mod,Common prenode, int scheduleTime);
+    float predecessorForce(vector<Common>&mod,Common nextnode, int scheduleTime);
+    void forceschedule(vector<Common>&mod,int latency);
+
     string getName();
     string getType();
     int getBitWidth();
