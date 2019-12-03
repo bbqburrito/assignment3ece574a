@@ -99,6 +99,7 @@ int main(int argc, char* argv[]){
     char* outfile=argv[3];
     string circuit(outfile);
     unsigned int j;
+        unsigned int k;
         unsigned int numstate=5;
     if(outfile!=NULL&&error==false){
         verilog.open(outfile);
@@ -158,6 +159,13 @@ int main(int argc, char* argv[]){
                 //print each node
                 //if node j scheduled at this time
                 //verilog<<mod.at(j).getline();
+                for(k=0;k<mod.size();k++){
+                    if(mod.at(k).getTimeFrame().at(2)==i){
+                        verilog<<mod.at(k).getline();
+                            verilog<<endl;
+                    }
+                    
+                }
                 verilog<<"StateNext <= S"<<i+1<<";"<<endl;
                 verilog<<"end"<<endl;
             }
