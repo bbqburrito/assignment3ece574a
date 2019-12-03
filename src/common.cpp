@@ -88,11 +88,17 @@ void Common::add_edge(Operation from, Operation to)
     //place first element adjacency list
     for(auto i: CDFG)
     {
-        if(i.front() == from)  //add v to adjacency list for u
+        if(i.front() == from)   //add v to adjacency list for u: place in temp vector
+                                //then delete iterator vector from CDFG. place temp vector in CDFG
         {
             exists = true;
-            i.push_back(to);
+            to_row = i;
+            to_row.push_back(to);
+            CDFG.erase(remove(CDFG.begin(), CDFG.end(), i), CDFG.end());
+            CDFG.push_back(to_row);
+
         }
+        int x = 1;              //operation for debugging
         
     }
     //if not in graph, add new row to graph
@@ -285,24 +291,40 @@ void Common::buildCDFG()
             {
                 for(auto j: level)          //find connected node and add edge
                 {
-                    if(find(j.getInputs().begin(), j.getInputs().end(), i.getOutput()) != j.getInputs().end())
+                    //bool test = find(j.getInputs().begin(), j.getInputs().end(), i.getOutput()) != j.getInputs().end();
+                    //if(!(find(j.getInputs().begin(), j.getInputs().end(), i.getOutput()) == (j.getInputs().end())))
+                    for(auto k: j.getInputs())
                     {
-                        add_edge(i, j);
+                        if(k == i.getOutput())
+                        {
+                            add_edge(i, j);
+                        }
                     }
                 }       
+                is_present = false;
                 //if node is not already in next_level, add to next_level
-                if(find(next_level.begin(), next_level.end(), i) != next_level.end()) 
+                for(auto j: next_level)
+                {
+                    if(j == i)
+                    {
+                        is_present = true;
+                    }     
+                }
+                if(!is_present)
                 {
                     next_level.push_back(i);
                 }
-                for(auto k: i.getInputs())          //iterate through node's inputs and place in v_next_inputs
+                is_present = false;
+
+                for(auto j: i.getInputs())          //iterate through node's inputs and place in v_next_inputs
                                                     //unless input is in v0_inputs or already in v_next_inputs
                 {
-                    if((find(v_next_inputs.begin(), v_next_inputs.end(), k) != v_next_inputs.end()) &&
-                            (find(v0_inputs.begin(), v0_inputs.end(), k) != v0_inputs.end()))
+                    if((find(v_next_inputs.begin(), v_next_inputs.end(), j) == v_next_inputs.end()) &&
+                                find(v0_inputs.begin(), v0_inputs.end(), j) == v0_inputs.end())
                     {
-                        v_next_inputs.push_back(k);
+                        v_next_inputs.push_back(j);
                     }
+                    
                 }
             }
         }

@@ -18,7 +18,7 @@ class Operation
                     int to_cycles, int to_alap, int to_asap);
     Operation(const Operation& to_copy);
     void operator= (const Operation& to_copy);
-    inline bool operator== (const Operation& to_compare){   //inline == comparator. 
+    inline bool operator== (const Operation& to_compare) const{   //inline == comparator. 
                                                             //checks Operation numbers to see if equal)
         return (to_compare.getNumber() == number);
     }
