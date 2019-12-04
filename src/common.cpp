@@ -797,7 +797,7 @@ double Common::getlatency(){
     return this->latency;
 }
 vector<int> Common::getTimeFrame()
-//vector of 2 integers,first is scheduled time in asap,second is scheduled time in alap
+//vector of 2 integers,first is scheduled time in asap,second is scheduled time in alap,third is forced schedule time
 {
     return this->timeFrame;
 }
