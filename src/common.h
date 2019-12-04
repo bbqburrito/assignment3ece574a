@@ -109,5 +109,6 @@ private:
     double latency;
     vector<string> op_in;
     vector<int> timeFrame;
+    //vector of 2 integers,first is scheduled time in asap,second is scheduled time in alap,third is forced schedule time
     int timewidth;
 };
