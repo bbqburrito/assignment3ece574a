@@ -10,7 +10,8 @@
 #include <sstream>
 #include <algorithm>
 #include "variables.h"
-#include "common.h"
+#include "schedule.h"
+//#include "common.h"
 #include <map>
 using namespace std;
 vector<double> findit(int index, vector<string>vs, vector<Common> mod, vector<variables> var,double templatency, vector<double> path);
@@ -45,6 +46,7 @@ int main(int argc, char* argv[]){
     vector<variables> var;
     variables convertvar;
     var.push_back(convertvar);
+    schedule toplevel;
     bool error=false;
     Common to_test;
     vector<Common> mod;
@@ -85,6 +87,14 @@ int main(int argc, char* argv[]){
             mod=to_test.convert(lines, var);//module parser
      
           //  mod.push_back(to_test);//mod is a vector of modules
+            for(i=0;i<mod.size();i++){
+                toplevel.asap(mod);
+                if(stoi(argv[2])<mod.at(i).getTimeFrame().at(0)){
+                    cout<<"Error: Latency is too small for this netlist"<<endl;
+//                    cout << "Error: Latency entered is too small for the netlist. Please enter a value of " << minLatency << " or higher. Exiting." << endl;
+                    return 0;
+                }
+            }
 
              netlist.close();
         }
@@ -99,16 +109,15 @@ int main(int argc, char* argv[]){
     char* outfile=argv[3];
     string circuit(outfile);
     unsigned int j;
-        unsigned int k;
-        unsigned int numstate=5;
+    unsigned int k;
+    unsigned int numstate=7;//for test
     if(outfile!=NULL&&error==false){
         verilog.open(outfile);
         if(verilog.is_open()){
-         for(i=0;i<mod.size();i++){
-                toplevel.forceschedule(mod, latency);//apply force schedule for each node
-                
+            for(i=0;i<mod.size();i++){
+                toplevel.forceschedule(mod, latency);
+
             }
-           
             verilog << "module HLSM" <<"("<<"clk,rst";
             for(i=0;i<var.size();i++){
                 if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="output"){
@@ -158,7 +167,6 @@ int main(int argc, char* argv[]){
                 verilog<<"S"<<i<<": begin"<<endl;
                 //print each node
                 //if node j scheduled at this time
-                //verilog<<mod.at(j).getline();
                 for(k=0;k<mod.size();k++){
                     if(mod.at(k).getTimeFrame().at(2)==i){
                         verilog<<mod.at(k).getline();
@@ -166,6 +174,7 @@ int main(int argc, char* argv[]){
                     }
                     
                 }
+                //verilog<<mod.at(j).getline();
                 verilog<<"StateNext <= S"<<i+1<<";"<<endl;
                 verilog<<"end"<<endl;
             }
