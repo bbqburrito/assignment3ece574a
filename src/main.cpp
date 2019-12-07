@@ -14,16 +14,16 @@
 //#include "common.h"
 #include <map>
 using namespace std;
-vector<double> findit(int index, vector<string>vs, vector<Common> mod, vector<variables> var,double templatency, vector<double> path);
+
 int main(int argc, char* argv[]){
     //argv[1]="474a_circuit3.txt";//need to change it back!!!!!!!!!!!!!!!!!
     if (argc != 4)
     {
         
         cout << "Usage:\thlsyn cFile latency verilogFile" << endl;
-//        cout << "\tcFile - The  netlist you wish to convert." << endl;
-//        cout << "\tlatency - How long the graph has to be scheduled." << endl;
-//        cout << "\tverilogFile - The path to for the output verilogFile" << endl;
+        //        cout << "\tcFile - The  netlist you wish to convert." << endl;
+        //        cout << "\tlatency - How long the graph has to be scheduled." << endl;
+        //        cout << "\tverilogFile - The path to for the output verilogFile" << endl;
         return 0;
     }
     int latency;
@@ -46,14 +46,19 @@ int main(int argc, char* argv[]){
     vector<variables> var;
     variables convertvar;
     var.push_back(convertvar);
-    schedule toplevel;
+     schedule toplevel;
     bool error=false;
     Common to_test;
     vector<Common> mod;
     unsigned int i;
-     vector<string> lines;//store all the module lines together,then parse them one by one(needed for if parser)
+
+    unsigned int j;
+    unsigned int k;
+    unsigned int found;
+    vector<string> lines;//store all the module lines together,then parse them one by one(needed for if parser)
     if(filename!=NULL){
-    netlist.open(argv[1]);
+    
+        netlist.open(argv[1]);
         if(netlist.is_open()){//validating we can open the file
             while(!netlist.eof()){
                 getline(netlist,line);
@@ -63,65 +68,100 @@ int main(int argc, char* argv[]){
                     error=true;
                     return EXIT_FAILURE;
                 }
+                //                netlist.seekg(0, ios::end);
+                //                if (netlist.tellg() == 0) {
+                //                    cout<<"Empty file"<<endl;
+                //                }
                 for (i=0;i<convertvar.parse(line).size();i++){
                     //parse variable when we read each line, since there might be several variables initialized in the same line, parse function will return a vector<variables>
-            if((convertvar.parse(line).at(i).getdummy()==("input"))||(convertvar.parse(line).at(i).getdummy()==("output"))||(convertvar.parse(line).at(i).getdummy()==("wire"))||(convertvar.parse(line).at(i).getdummy()==("reg"))){
-                   
-               //determine it's a variable declaration, converting the variables first
-                      var.push_back(convertvar.parse(line).at(i));
-                  //add ith variable into a vector<variables> named var;
-                       Contents.push_back(convertvar.parse(line).at(i).getline());
-                    //add the converted line in to a vector <string> named Contents;
+                    if((convertvar.parse(line).at(i).getdummy()==("input"))||(convertvar.parse(line).at(i).getdummy()==("output"))||(convertvar.parse(line).at(i).getdummy()==("wire"))||(convertvar.parse(line).at(i).getdummy()==("reg"))){
+                        
+                        //determine it's a variable declaration, converting the variables first
+                        var.push_back(convertvar.parse(line).at(i));
+                        //add ith variable into a vector<variables> named var;
+                        Contents.push_back(convertvar.parse(line).at(i).getline());
+                        //add the converted line in to a vector <string> named Contents;
                     }
                 }
-                    //             start converting modules//////////////////////////
-            //identify that the line we read is a module, not variable anymore
+                //             start converting modules//////////////////////////
+                //identify that the line we read is a module, not variable anymore
                 if(line.find("=") != string::npos){
                     lines.push_back(line);
-//                 to_test=Common(line, var);//module parser
-               // Contents.push_back(to_test.getline());//add the converted line into Contents;
-//                    mod.push_back(to_test);//mod is a vector of modules
-                    
                 }
-                    }
+            }
             mod=to_test.convert(lines, var);//module parser
-     
-          //  mod.push_back(to_test);//mod is a vector of modules
+            
+            //  mod.push_back(to_test);//mod is a vector of modules
             for(i=0;i<mod.size();i++){
                 toplevel.asap(mod);
                 if(stoi(argv[2])<mod.at(i).getTimeFrame().at(0)){
                     cout<<"Error: Latency is too small for this netlist"<<endl;
-//                    cout << "Error: Latency entered is too small for the netlist. Please enter a value of " << minLatency << " or higher. Exiting." << endl;
+                    //                    cout << "Error: Latency entered is too small for the netlist. Please enter a value of " << minLatency << " or higher. Exiting." << endl;
                     return 0;
                 }
             }
-
-             netlist.close();
+            netlist.close();
+            ///////////////////////determine error//////////////
+//                        for(i=0;i<mod.size();i++){
+//                            found=0;
+//                            for(k=0;k<mod.at(i).getopin().size();k++){
+//                                for(j=1;j<var.size();j++){
+//                                    if(mod.at(i).getopin().at(k)==var.at(j).getName()){
+//                                        found=1;
+//                                        break;
+//                                    }
+//                     
+//                               else if(mod.at(i).getopout()==var.at(j).getName()){
+//                                    found=1;
+//                                   break;
+//                                }
+//                                    else{ found=0;}
+//                                }
+//                            }
+//                        }
+//                        if(found==0){
+//                            cout<<"Error file"<<endl;
+//            
+//                            return 0;}
         }
+        else{
+            cout<<"Empty file"<<endl;
+        }
+        
     }
-    if (Contents.size() == 0) {
-        cout << "Cannot open file or empty file: " << argv[1] << endl;
-
-    }
-
-//////////////////////////////////////////////writing///////////////////////////////////////////////
+    
+//////////////////////////////////////////////writing///////////////////////////////////////////////////
     ofstream verilog;
     char* outfile=argv[3];
     string circuit(outfile);
-    unsigned int j;
-    unsigned int k;
-    unsigned int numstate=7;//for test
+    
+    found=0;
+    unsigned int numstate=1+latency;//for test
     if(outfile!=NULL&&error==false){
         verilog.open(outfile);
         if(verilog.is_open()){
-            for(i=0;i<mod.size();i++){
+           // for(i=0;i<mod.size();i++){
                 toplevel.forceschedule(mod, latency);
-
-            }
+                
+            //}
+//            for(i=mod.size()-1;i>0;i--){
+//                
+//                for (int m = 0; m < mod.at(i).getopin().size(); m++)
+//                {
+//                    
+//                    int pre=toplevel.haspredecessor(mod, mod.at(i).getopin().at(m));
+//                    if(pre!=-1){
+//                        if(mod.at(i).getTimeFrame().at(2)==mod.at(pre).getTimeFrame().at(2)){
+//                            mod.at(i).getTimeFrame().at(2)=mod.at(i).getTimeFrame().at(2)+1;
+//                        }
+//                    }
+//                    
+//                }
+//            }
             verilog << "module HLSM" <<"("<<"clk,rst";
             for(i=0;i<var.size();i++){
                 if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="output"){
-                verilog<<",";
+                    verilog<<",";
                     verilog<<var.at(i).getName();// add all input/output variable,
                     //eg:module out1(a,b,c,d);
                     
@@ -130,17 +170,17 @@ int main(int argc, char* argv[]){
             verilog<<");"<< endl;
             verilog<<"input clk,rst;"<< endl;
             verilog << "output reg Done;" << endl;
-//            for(int i=0;i<var.size();i++){
-//                verilog << var.at(i).getline();}
-        //write to file
+            //            for(int i=0;i<var.size();i++){
+            //                verilog << var.at(i).getline();}
+            //write to file
             for(j=0;j<Contents.size();j++){//write all the converted line
                 verilog << Contents.at(j)<<endl;
             }
-//            for(int i=0;i<mod.size();i++){
-//                       verilog << mod.at(i).getline()<<endl;}
-            verilog << "parameter S0=0";
-            for(i=1;i<numstate;i++){
-                verilog<<", S"<<i<<"="<<i;
+            //            for(int i=0;i<mod.size();i++){
+            //                       verilog << mod.at(i).getline()<<endl;}
+            verilog << "parameter wait=0";
+            for(i=0;i<numstate;i++){
+                verilog<<", S"<<i<<"="<<i+1;
                 
             }
             verilog<<";"<<endl;
@@ -149,7 +189,7 @@ int main(int argc, char* argv[]){
             verilog<<"if (Rst == 1)"<<endl;
             verilog<<"Start<=0;"<<endl;
             verilog<<"Done<=0;"<<endl;
-            verilog<<"State <= S0;"<<endl;
+            verilog<<"State <= wait;"<<endl;
             verilog<<"else"<<endl;
             verilog<<"State <= StateNext;"<<endl;
             verilog<<"end"<<endl;
@@ -157,42 +197,53 @@ int main(int argc, char* argv[]){
             verilog<<"always @(*) begin"<<endl;
             verilog<<"case (State)"<<endl;
             verilog<<"Done<=0;"<<endl;
-            verilog<<"S0: begin"<<endl;
+            verilog<<"wait: begin"<<endl;
             verilog<<"if(Start==1)"<<endl;
-            verilog<<"StateNext <= S1;"<<endl;
-            verilog<<"else"<<endl;
             verilog<<"StateNext <= S0;"<<endl;
+            verilog<<"else"<<endl;
+            verilog<<"StateNext <= wait;"<<endl;
             verilog<<"end"<<endl;
-            for(i=1;i<numstate-1;i++){
-                verilog<<"S"<<i<<": begin"<<endl;
+            j=0;
+            verilog<<"S"<<j<<": begin"<<endl;
+            for(i=0;i<numstate;i++){
+                
                 //print each node
                 //if node j scheduled at this time
                 for(k=0;k<mod.size();k++){
                     if(mod.at(k).getTimeFrame().at(2)==i){
                         verilog<<mod.at(k).getline();
-                            verilog<<endl;
+                        verilog<<endl;
+                        found=1;
                     }
-                    
                 }
-                //verilog<<mod.at(j).getline();
-                verilog<<"StateNext <= S"<<i+1<<";"<<endl;
-                verilog<<"end"<<endl;
+                if (found ==1)
+                {
+                    
+                    
+                    //verilog<<mod.at(j).getline();
+                    verilog<<"StateNext <= S"<<j+1<<";"<<endl;
+                    verilog<<"end"<<endl;
+                    verilog<<"S"<<j+1<<": begin"<<endl;
+                    j++;
+                }
+                // j++;
+                found =0;
             }
-             verilog<<"S"<<numstate-1<<": begin"<<endl;
+            // verilog<<"S"<<numstate<<": begin"<<endl;
             verilog << "Done <= 1;" << endl;
             verilog << "StateNext <= S0;" << endl;
-              verilog<<"end"<<endl;
-              verilog << "endcase" << endl;
+            verilog<<"end"<<endl;
+            verilog << "endcase" << endl;
             
             verilog << "end" << endl;
             
             verilog << "\nendmodule " << endl << endl;
-
-         }
-         else{
-               cout<<"Coudn't open file."<<endl;
-         }
-     }
+            
+        }
+        else{
+            cout<<"Coudn't open file."<<endl;
+        }
+    }
     verilog.close();
-
+    
 }
