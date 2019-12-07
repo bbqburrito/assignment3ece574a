@@ -1,4 +1,4 @@
-#include "Common.h"
+#include "CDFG_graph.h"
 
 using namespace std;
 
@@ -10,7 +10,7 @@ int main()
     vector<string> test_types;
     vector<Operation> ops;
     Operation* temp;
-    Common make_graph;
+    CDFG_graph make_graph;
     int i = 0;
 
     //generate types
