@@ -42,7 +42,7 @@ void schedule::asap(vector<Common> &mod){
                 {
                     if ((mod.at(pre).getoperation() == "DIV") || (mod.at(pre).getoperation() == "MOD"))
                         tempedge=mod.at(pre).getTimeFrame().at(0) + 3;
-                    else if (mod.at(i).getoperation() == "MUL")
+                    else if (mod.at(pre).getoperation() == "MUL")
                         tempedge=mod.at(pre).getTimeFrame().at(0) + 2;
                     
                     else
@@ -61,7 +61,7 @@ void schedule::asap(vector<Common> &mod){
 }
 void schedule::alap(vector<Common> &mod,int latency){//void or int???
     unsigned int i = 0;
-  //  unsigned int j = 0;
+    //  unsigned int j = 0;
     unsigned int k;
     unsigned int edge = latency;    //earliest successor node alap time
     bool ready;                //determine if module is ready to be scheduled
@@ -74,34 +74,38 @@ void schedule::alap(vector<Common> &mod,int latency){//void or int???
         if (mod.at(i).getTimeFrame().size() == 1)
         {
             ready = true;
-           
-           //if the output has no successor node, check next output
-               next=hassuccessor(mod, mod.at(i).getopout());
-                if (next.size()==0);
-                else{
-                    for(k=0;k<next.size();k++){
-            //if a successor module is not scheduled move on to next module
-                 if (mod.at(next.at(k)).getTimeFrame().size() == 1)
-                {
-                    ready = false;
-                    break;
-                }
-                //if successor node has been scheduled
-                else
-                {
-                    if ((mod.at(next.at(k)).getoperation() == "DIV") || (mod.at(next.at(k)).getoperation() == "MOD"))
-                        tempedge=mod.at(next.at(k)).getTimeFrame().at(1) - 3;
-                    else if (mod.at(next.at(k)).getoperation() == "MUL")
-                        tempedge=mod.at(next.at(k)).getTimeFrame().at(1) - 2;
+            
+            //if the output has no successor node, check next output
+            next=hassuccessor(mod, mod.at(i).getopout());
+            if (next.size()==0);
+            else{
+                for(k=0;k<next.size();k++){
+                    //if a successor module is not scheduled move on to next module
+                    if (mod.at(next.at(k)).getTimeFrame().size() == 1)
+                    {
+                        ready = false;
+                        break;
+                    }
+                    //if successor node has been scheduled
                     else
-                        tempedge=mod.at(next.at(k)).getTimeFrame().at(1) - 1;
-//                    index=next.at(k);
-                     if(tempedge<=edge)  edge=tempedge;
-                }}}
+                    {
+                        //                    if ((mod.at(next.at(k)).getoperation() == "DIV") || (mod.at(next.at(k)).getoperation() == "MOD"))
+                        if ((mod.at(i).getoperation() == "DIV") || (mod.at(i).getoperation() == "MOD"))
+                            tempedge=mod.at(next.at(k)).getTimeFrame().at(1) - 3;
+                        
+                        //                    else if (mod.at(next.at(k)).getoperation() == "MUL")
+                        else if (mod.at(i).getoperation() == "MUL")
+                            tempedge=mod.at(next.at(k)).getTimeFrame().at(1) - 2;
+                        else
+                            tempedge=mod.at(next.at(k)).getTimeFrame().at(1) - 1;
+                        
+                        //                    index=next.at(k);
+                        if(tempedge<=edge)  edge=tempedge;
+                    }}}
             if (ready)
             {
                 mod.at(i).setTimeFrame(edge);
-                  edge=latency;
+                edge=latency;
             }
         }
     }
@@ -113,9 +117,9 @@ int schedule::haspredecessor(vector<Common>mod,string current){
         if(mod.at(i).getopout()==current)   {
             return i;
         }
-       
+        
     }
-     return -1;
+    return -1;
 }
 vector<int> schedule::hassuccessor(vector<Common>mod,string current){
     unsigned int i=0;
@@ -123,13 +127,13 @@ vector<int> schedule::hassuccessor(vector<Common>mod,string current){
     vector<int> num={};//the index of each successors in a vector
     for(i=0;i<mod.size();i++){
         for(j=0;j<mod.at(i).getopin().size();j++){
-        if(mod.at(i).getopin().at(j)==current)   {
-           num.push_back(i);
-        }}
-      
+            if(mod.at(i).getopin().at(j)==current)   {
+                num.push_back(i);
+            }}
+        
     }
     
-      return num;
+    return num;
 }
 void schedule::probability(vector<Common>&mod,int latency)
 {
@@ -144,9 +148,9 @@ void schedule::probability(vector<Common>&mod,int latency)
     {
         //propablity for each time is 1/(timeframewidth)
         probability = 1/((float)mod.at(i).getTimeFrame().at(1)-(float)mod.at(i).getTimeFrame().at(0) + 1);
-    
+        
         j = mod.at(i).getTimeFrame().at(0)-1;
-        for (j=0; j < mod.at(i).getTimeFrame().at(1); j++)
+        for (j; j < mod.at(i).getTimeFrame().at(1); j++)
         {
             //Sum up the probabilities of the operations implemented by a specific resource at each
             // time step
@@ -154,22 +158,22 @@ void schedule::probability(vector<Common>&mod,int latency)
                 divGraph.at(j) = divGraph.at(j) + probability;
             
             else if ((mod.at(i).getoperation() == "MUL"))
-               mulGraph.at(j) = mulGraph.at(j) + probability;
+                mulGraph.at(j) = mulGraph.at(j) + probability;
             
             else                aluGraph.at(j) = aluGraph.at(j) + probability;
-
+            
         }
     }
     this->aluprob = aluGraph;
     this->mulprob = mulGraph;
     this->divmodprob = divGraph;
 }
-                  //start is the timeframe.at(0)-1(because the index of probability start from 0)
-                                                //end is  timeframe.at(1)
+//start is the timeframe.at(0)-1(because the index of probability start from 0)
+//end is  timeframe.at(1)
 vector<float> schedule:: selfForce(Common &tempmod, int start, int end){
     
-    unsigned int i = 0;
-    unsigned int j = 0;
+    unsigned int i;
+    unsigned int j;
     float probability;
     float tempforce = 0;
     vector<float> selfForce = vector<float>(0);
@@ -221,7 +225,7 @@ float schedule::predecessorForce(vector<Common>&mod,Common prenode, int schedule
 {
     unsigned int i = 0;
     float preForce = 0;        // predecessor forces of current node
-    vector<float> tempForce;    //self forces of implicitly scheduled nodes
+    vector<float> tempForce;
     
     if (prenode.getoperation() == "DIV" || prenode.getoperation() == "MOD")
     {
@@ -245,19 +249,18 @@ float schedule::predecessorForce(vector<Common>&mod,Common prenode, int schedule
             scheduleTime = scheduleTime - 1;
     }
     
-    //iterate through predecessor nodes if there are any
     for (i = 0; i < prenode.getopin().size(); i++)
     {
-        //if thas predecessor
+        //if has predecessor, calculate the predecessor force the current predecessor node
         int pre=haspredecessor(mod, prenode.getopin().at(i));
-  
+        
         if (pre != -1)
             preForce = preForce + predecessorForce(mod,mod.at(pre), scheduleTime);
     }
-    //calculate the self forces of implicitly shceduled nodes
+    //calculate the self force of the predecessor node
     tempForce = selfForce(prenode, prenode.getTimeFrame().at(0)-1, scheduleTime+1);
     
-    //add up self forces
+    //calculated total predecessor force
     for (i = 0; i < tempForce.size(); i++)
         preForce = preForce + tempForce.at(i);
     
@@ -265,21 +268,21 @@ float schedule::predecessorForce(vector<Common>&mod,Common prenode, int schedule
     
 }
 
-float schedule::successorForce(vector<Common>&mod,Common nextnode, int scheduleTime)
+float schedule::successorForce(vector<Common>&mod,Common currnode,Common nextnode, int scheduleTime)
 {
     unsigned int i = 0;
-        unsigned int k = 0;
-    float succForce = 0;        //sum of successive forces
-    vector<float> tempForce;    //self forces of implicitly scheduled nodes
+    unsigned int k = 0;
+    float succForce = 0;        //sum of successive forces of this node
+    vector<float> tempForce;
     
-    if (nextnode.getoperation() == "DIV" || nextnode.getoperation() == "MOD")
+    if (currnode.getoperation() == "DIV" || currnode.getoperation() == "MOD")
     {
         if ((scheduleTime + 2) < (nextnode.getTimeFrame().at(0) - 1))
             scheduleTime = nextnode.getTimeFrame().at(0) - 1;
         else
             scheduleTime = scheduleTime + 3;
     }
-    else if (nextnode.getoperation() == "MUL")
+    else if (currnode.getoperation() == "MUL")
     {
         if((scheduleTime + 1) < (nextnode.getTimeFrame().at(0) - 1))
             scheduleTime = nextnode.getTimeFrame().at(0) - 1;
@@ -294,18 +297,17 @@ float schedule::successorForce(vector<Common>&mod,Common nextnode, int scheduleT
             scheduleTime = scheduleTime + 1;
     }
     
-    //iterate through successor nodes if there are any
     vector<int> next=hassuccessor(mod,nextnode.getopout());
     if(next.size()!=0){
-    for(k=0;k<next.size();k++){
-        //if has successor node
-       
-            succForce = succForce + successorForce(mod,mod.at(next.at(k)), scheduleTime);
-    }}
-    //calculate the self forces of implicitly shceduled nodes
+        for(k=0;k<next.size();k++){
+            //if has successor node, calculate the successor force the current successor node
+            
+            succForce = succForce + successorForce(mod,nextnode,mod.at(next.at(k)), scheduleTime);
+        }}
+    //calculate the self forces of the successor node
     tempForce = selfForce(nextnode, scheduleTime, nextnode.getTimeFrame().at(1));
-    
-    //add up self forces
+    //+1???????
+    //calculated total successor force
     for (i = 0; i < tempForce.size(); i++)
         succForce = succForce + tempForce.at(i);
     
@@ -315,78 +317,118 @@ float schedule::successorForce(vector<Common>&mod,Common nextnode, int scheduleT
 }
 
 void schedule::forceschedule(vector<Common>&mod,int latency)
-{
+{//unsigned int n;
+   //  for(n = 0; n < mod.size(); n++){
     int size=mod.size();
-    for(size;size>0;size--){
-          asap(mod);
+    for(size;size>0;size--){//asap schedule for everynode
+        asap(mod);
     }
-    for(size=mod.size();size>0;size--){
-   alap(mod, latency);//issue:f没有alap time
+    for(size=mod.size();size>0;size--){//alap schedule for everynode
+        alap(mod, latency);
     }
     
-    //alap(mod, latency);//issue:f没有alap time
+    
+    unsigned int scheduleTime;      //assumed schedule time
+    int nodeindex;                //module with lowest force
+    int time;                //final schedule time
+    int tempTime;            //current schedule time
+    float tempForce;
+   unsigned int temp;
+    float minForce = 10000;    //random lowest force
+    vector<float> force;    //total force for each node
     unsigned int i = 0;
     unsigned int j = 0;
     unsigned int k = 0;
-    unsigned int assumedTime;
-    int module;                //module with lowest force
-    int time;                //time with lowest force
-    int tempTime;            //current module's time with lowest force
-    float tempForce;            //current module's lowest force
-    float minForce = 10000;    //lowest force
-    vector<float> force;    //module's forces
-    
-    probability(mod,latency);
-    //iterate through modules
+    unsigned int m = 0;
+    unsigned int flag= 0;
+
+     unsigned int pre = 0;
+    probability(mod,latency);//calculate the probability for each operation type of each time
+   
     for (i = 0; i < mod.size(); i++)
-    {
+    {minForce = 10000;minForce = 10000;flag=0;
         //check if is already scheduled
         if(mod.at(i).getTimeFrame().size() == 2)
         {
-            //calculate self forces for each time in a module
+             scheduleTime =  mod.at(i).getTimeFrame().at(0) - 1;
+            //calculate self force for each assumed time
             tempForce = 10000;
-            force = selfForce(mod.at(i), mod.at(i).getTimeFrame().at(0)-1, mod.at(i).getTimeFrame().at(1));
+           
+            for(m = 0; m < mod.at(i).getopin().size(); m++){
+                pre=haspredecessor(mod, mod.at(i).getopin().at(m));
+                if(pre!=-1){
+                    if(mod.at(pre).getTimeFrame().size()==3){
+                        temp =  mod.at(pre).getTimeFrame().at(2);
+                        if(scheduleTime<temp) scheduleTime=temp;
+                        else temp=scheduleTime;
+                        flag=1;
+                    }
+                }
+            }
+//            force = selfForce(mod.at(i), mod.at(i).getTimeFrame().at(0)-1, mod.at(i).getTimeFrame().at(1));
+            force = selfForce(mod.at(i), scheduleTime, mod.at(i).getTimeFrame().at(1));
+
+            //iterate thorugh the self forces, add predecessor and successor forces to the self forces
             
-            //iterate thorugh the self forces
+//           scheduleTime =  mod.at(i).getTimeFrame().at(0) - 1;
             for (j = 0; j < force.size(); j++)
             {
-                assumedTime = j + mod.at(i).getTimeFrame().at(0) - 1;
+               // scheduleTime = j + mod.at(i).getTimeFrame().at(0) - 1;
                 //iterate through the successor nodes
                 vector<int> next=hassuccessor(mod, mod.at(i).getopout());
+                //add successorForce of each successor node
                 for(k=0;k<next.size();k++){
-          
-                    //add predecessor and successor forces to the self forces
-                   
-                        force.at(j) = force.at(j) + successorForce(mod,mod.at(next.at(k)), assumedTime);
-                
+                    
+                    force.at(j) = force.at(j) + successorForce(mod,mod.at(i),mod.at(next.at(k)), scheduleTime);
+                    
                 }
-                for (k = 0; k < mod.at(i).getopin().size(); k++)
+                for (m = 0; m < mod.at(i).getopin().size(); m++)
                 {
-                    //add predecessor and successor forces to the self forces
-                     int pre=haspredecessor(mod, mod.at(i).getopin().at(k));
+                    //add predecessor  forces of each predecessor node to the total force
+                   pre=haspredecessor(mod, mod.at(i).getopin().at(m));
                     if(pre!=-1)
-                        force.at(j) = force.at(j) + predecessorForce(mod,mod.at(pre), assumedTime);
+                        force.at(j) = force.at(j) + predecessorForce(mod,mod.at(pre), scheduleTime);
                 }
                 
-                //if this force is the minimum, update minimum
-                //and update its time
+                //update the force to be minimum
                 if (force.at(j) < tempForce)
                 {
                     tempForce = force.at(j);
-                    tempTime = mod.at(i).getTimeFrame().at(0) + j;
+                    if(flag==1){
+                        tempTime = temp+1+ j;}
+                    else{
+                        tempTime = mod.at(i).getTimeFrame().at(0) + j;
+                    }
                 }
+                scheduleTime+=1;
             }
-            //if the min force of the module is less then the current min,
-            //update min, the module, and the time it is to be scheduled
+            //determine the final schedule time to be the one with minimum force
+            
             if (tempForce < minForce)
             {
                 minForce = tempForce;
-                module = i;
+                nodeindex = i;
                 time = tempTime;
+                mod.at(i).setforce(tempForce);
             }
         }
-    }
- 
-    mod.at(module).setTimeFrame(time);
+//       
+   // }
+//            for ( m = 0; m < mod.at(nodeindex).getopin().size(); m++)
+//            {
+//
+//                pre=haspredecessor(mod, mod.at(nodeindex).getopin().at(m));
+//                if(pre!=-1){
+//                    if(mod.at(pre).getTimeFrame().size()==3){
+//                    if(time==mod.at(pre).getTimeFrame().at(2)){
+//                        time=time+1;
+//                        break;
+//                    }
+//                    }
+//                }}
 
+        
+    mod.at(i).setTimeFrame(time);
+  }
+   
 }
