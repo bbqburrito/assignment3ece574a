@@ -96,36 +96,49 @@ int main(int argc, char* argv[]){
                 toplevel.asap(mod);
                 if(stoi(argv[2])<mod.at(i).getTimeFrame().at(0)){
                     cout<<"Error: Latency is too small for this netlist"<<endl;
-                    //                    cout << "Error: Latency entered is too small for the netlist. Please enter a value of " << minLatency << " or higher. Exiting." << endl;
+                    
                     return 0;
                 }
             }
             netlist.close();
-            ///////////////////////determine error//////////////
-//                        for(i=0;i<mod.size();i++){
-//                            found=0;
-//                            for(k=0;k<mod.at(i).getopin().size();k++){
-//                                for(j=1;j<var.size();j++){
-//                                    if(mod.at(i).getopin().at(k)==var.at(j).getName()){
-//                                        found=1;
-//                                        break;
-//                                    }
-//                     
-//                               else if(mod.at(i).getopout()==var.at(j).getName()){
-//                                    found=1;
-//                                   break;
-//                                }
-//                                    else{ found=0;}
-//                                }
-//                            }
-//                        }
-//                        if(found==0){
-//                            cout<<"Error file"<<endl;
-//            
-//                            return 0;}
+            /////////////////////determine error//////////////
+                        for(i=0;i<mod.size();i++){
+                            found=0;
+                            for(k=0;k<mod.at(i).getopin().size();k++){
+                                for(j=1;j<var.size();j++){
+                                    if(mod.at(i).getopin().at(k)==var.at(j).getName()){
+                                        found=1;
+                                        break;
+                                    }
+                               else{
+                                   found=0;
+                                  
+                               }
+                                } if(found==0){
+                                        cout<<"Error file"<<endl;
+                                         return 0;
+                                    }
+                            }
+                            for(j=1;j<var.size();j++){
+                                if(mod.at(i).getopout()==var.at(j).getName()){
+                                    found=1;
+                                    break;
+                                }else{
+                                    found=0;
+                                }
+                            }if(found==0){
+                                cout<<"Error file"<<endl;
+                                return 0;
+                            }
+                        }
+            
+            if(Contents.size()==0){
+                 cout<<"Empty file"<<endl;
+                return 0;
+            }
         }
         else{
-            cout<<"Empty file"<<endl;
+            cout<<"File doesn't exist"<<endl;
         }
         
     }
@@ -142,22 +155,7 @@ int main(int argc, char* argv[]){
         if(verilog.is_open()){
            // for(i=0;i<mod.size();i++){
                 toplevel.forceschedule(mod, latency);
-                
-            //}
-//            for(i=mod.size()-1;i>0;i--){
-//                
-//                for (int m = 0; m < mod.at(i).getopin().size(); m++)
-//                {
-//                    
-//                    int pre=toplevel.haspredecessor(mod, mod.at(i).getopin().at(m));
-//                    if(pre!=-1){
-//                        if(mod.at(i).getTimeFrame().at(2)==mod.at(pre).getTimeFrame().at(2)){
-//                            mod.at(i).getTimeFrame().at(2)=mod.at(i).getTimeFrame().at(2)+1;
-//                        }
-//                    }
-//                    
-//                }
-//            }
+  
             verilog << "module HLSM" <<"("<<"clk,rst";
             for(i=0;i<var.size();i++){
                 if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="output"){
