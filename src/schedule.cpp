@@ -320,12 +320,12 @@ void schedule::forceschedule(vector<Common>&mod,int latency)
 {//unsigned int n;
    //  for(n = 0; n < mod.size(); n++){
     int size=mod.size();
-    for(size;size>0;size--){//asap schedule for everynode
-        asap(mod);
-    }
-    for(size=mod.size();size>0;size--){//alap schedule for everynode
-        alap(mod, latency);
-    }
+//    for(size;size>0;size--){//asap schedule for everynode
+//        asap(mod);
+//    }
+//    for(size=mod.size();size>0;size--){//alap schedule for everynode
+//        alap(mod, latency);
+//    }
     
     
     unsigned int scheduleTime;      //assumed schedule time
@@ -333,47 +333,34 @@ void schedule::forceschedule(vector<Common>&mod,int latency)
     int time;                //final schedule time
     int tempTime;            //current schedule time
     float tempForce;
-   unsigned int temp;
+   //unsigned int temp;
     float minForce = 10000;    //random lowest force
     vector<float> force;    //total force for each node
     unsigned int i = 0;
     unsigned int j = 0;
     unsigned int k = 0;
     unsigned int m = 0;
-    unsigned int flag= 0;
+    //unsigned int flag= 0;
 
      unsigned int pre = 0;
     probability(mod,latency);//calculate the probability for each operation type of each time
    
     for (i = 0; i < mod.size(); i++)
-    {minForce = 10000;minForce = 10000;flag=0;
+    {//minForce = 10000;
+        tempForce = 10000;//flag=0;
         //check if is already scheduled
         if(mod.at(i).getTimeFrame().size() == 2)
         {
-             scheduleTime =  mod.at(i).getTimeFrame().at(0) - 1;
-            //calculate self force for each assumed time
-            tempForce = 10000;
-           
-            for(m = 0; m < mod.at(i).getopin().size(); m++){
-                pre=haspredecessor(mod, mod.at(i).getopin().at(m));
-                if(pre!=-1){
-                    if(mod.at(pre).getTimeFrame().size()==3){
-                        temp =  mod.at(pre).getTimeFrame().at(2);
-                        if(scheduleTime<temp) scheduleTime=temp;
-                        else temp=scheduleTime;
-                        flag=1;
-                    }
-                }
-            }
-//            force = selfForce(mod.at(i), mod.at(i).getTimeFrame().at(0)-1, mod.at(i).getTimeFrame().at(1));
-            force = selfForce(mod.at(i), scheduleTime, mod.at(i).getTimeFrame().at(1));
+                tempForce = 10000;
+           force = selfForce(mod.at(i), mod.at(i).getTimeFrame().at(0)-1, mod.at(i).getTimeFrame().at(1));
+            //force = selfForce(mod.at(i), scheduleTime, mod.at(i).getTimeFrame().at(1));
 
             //iterate thorugh the self forces, add predecessor and successor forces to the self forces
             
-//           scheduleTime =  mod.at(i).getTimeFrame().at(0) - 1;
+         // scheduleTime =  mod.at(i).getTimeFrame().at(0) - 1;
             for (j = 0; j < force.size(); j++)
             {
-               // scheduleTime = j + mod.at(i).getTimeFrame().at(0) - 1;
+                scheduleTime = j + mod.at(i).getTimeFrame().at(0) - 1;
                 //iterate through the successor nodes
                 vector<int> next=hassuccessor(mod, mod.at(i).getopout());
                 //add successorForce of each successor node
@@ -394,13 +381,13 @@ void schedule::forceschedule(vector<Common>&mod,int latency)
                 if (force.at(j) < tempForce)
                 {
                     tempForce = force.at(j);
-                    if(flag==1){
-                        tempTime = temp+1+ j;}
-                    else{
+//                    if(flag==1){
+//                        tempTime = temp+1+ j;}
+//                    else{
                         tempTime = mod.at(i).getTimeFrame().at(0) + j;
-                    }
+                    //}
                 }
-                scheduleTime+=1;
+               // scheduleTime+=1;
             }
             //determine the final schedule time to be the one with minimum force
             
@@ -409,26 +396,77 @@ void schedule::forceschedule(vector<Common>&mod,int latency)
                 minForce = tempForce;
                 nodeindex = i;
                 time = tempTime;
-                mod.at(i).setforce(tempForce);
+               // mod.at(i).setforce(tempForce);
             }
         }
-//       
-   // }
-//            for ( m = 0; m < mod.at(nodeindex).getopin().size(); m++)
-//            {
-//
-//                pre=haspredecessor(mod, mod.at(nodeindex).getopin().at(m));
-//                if(pre!=-1){
-//                    if(mod.at(pre).getTimeFrame().size()==3){
-//                    if(time==mod.at(pre).getTimeFrame().at(2)){
-//                        time=time+1;
-//                        break;
-//                    }
-//                    }
-//                }}
-
-        
-    mod.at(i).setTimeFrame(time);
-  }
+    }
+        updateAsap(mod,mod.at(nodeindex), time);
+        updateAlap(mod,mod.at(nodeindex), time);
+        mod.at(nodeindex).setTimeFrame(time);
+  
    
+}
+void schedule::updateAsap(vector<Common>&mod,Common &node,int edge)
+{
+    unsigned int i;
+    
+    node.updateAsap(edge);
+    vector<int> next=hassuccessor(mod, node.getopout());
+
+    for(i=0;i<next.size();i++){
+        
+   
+        if ((mod.at(next.at(i)).getoperation() == "DIV") || (mod.at(next.at(i)).getoperation() == "MOD"))
+        {
+            //if the assumed time of the previous operation does not effect
+            //when this operation is scheduled
+            if ((edge + 2) >= mod.at(next.at(i)).getTimeFrame().at(0))
+                updateAsap(mod,mod.at(next.at(i)),(edge + 3));
+        }
+        else if (mod.at(next.at(i)).getoperation() == "MUL")
+        {
+            if((edge + 1) >= mod.at(next.at(i)).getTimeFrame().at(0))
+               
+             updateAsap(mod,mod.at(next.at(i)),(edge + 2));
+        }
+        else
+        {
+            if (edge >= mod.at(next.at(i)).getTimeFrame().at(0))
+            
+             updateAsap(mod,mod.at(next.at(i)),(edge + 1));
+        }
+    }
+}
+
+void schedule::updateAlap(vector<Common>&mod,Common &node,int edge)
+{
+    unsigned int m;
+    unsigned int pre;
+    node.updateAlap(edge);
+    for (m = 0; m < node.getopin().size(); m++)
+    {
+        //add predecessor  forces of each predecessor node to the total force
+        pre=haspredecessor(mod, node.getopin().at(m));
+        if(pre!=-1)
+{
+            if ((node.getoperation() == "DIV") || (node.getoperation() == "MOD"))
+            {
+                //if the assumed time of the previous operation does not effect
+                //when this operation is scheduled
+                if ((edge - 2) <= mod.at(pre).getTimeFrame().at(1))
+                    updateAlap(mod,mod.at(pre),edge - 3);
+            }
+            else if (node.getoperation() == "MUL")
+            {
+                if((edge - 1) <= mod.at(pre).getTimeFrame().at(1))
+                    updateAlap(mod,mod.at(pre),edge - 2);
+            }
+            else
+            {
+                if (edge <= mod.at(pre).getTimeFrame().at(1))
+                    updateAlap(mod,mod.at(pre),edge - 1);
+                
+            }
+        }
+    }
 }
