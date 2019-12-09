@@ -2,7 +2,7 @@
 //  schedule.hpp
 //  hlsyn
 //
-//  
+//
 //
 
 #ifndef schedule_h
@@ -40,10 +40,11 @@ public:
     vector<int> hassuccessor(vector<Common>mod,string current);
     void probability(vector<Common>&mod,int latency);
     vector<float> selfForce(Common &tempmod, int start, int end);
-    float successorForce(vector<Common>&mod,Common prenode, int scheduleTime);
+    float successorForce(vector<Common>&mod,Common currnode,Common prenode, int scheduleTime);
     float predecessorForce(vector<Common>&mod,Common nextnode, int scheduleTime);
     void forceschedule(vector<Common>&mod,int latency);
-
+    void updateAsap(vector<Common>&mod,Common &node,int edge);
+    void updateAlap(vector<Common>&mod,Common &node,int edge);
     string getName();
     string getType();
     int getBitWidth();
@@ -54,7 +55,7 @@ public:
     void setname(string name);
     void setdummy(string dummy);
     void setsign(string issigned);
-};
+    };
 
 
 
