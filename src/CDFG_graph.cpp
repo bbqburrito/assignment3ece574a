@@ -8,10 +8,11 @@ Operation::~Operation()
 
 Operation::Operation():number(0), type(""), inputs {}, output(""), cycles(0), alap(0), asap(0) {}
 
-Operation::Operation(int to_number, string to_type, vector<string> to_inputs, string to_output,
-                    int to_cycles, int to_alap, int to_asap):number(to_number), type(to_type), 
+Operation::Operation(int to_number, string to_type, vector<string> to_inputs, string to_output, 
+                    int to_cycles, int to_alap, int to_asap, vector<Operation> to_branches, 
+                    vector<Operation> to_path):number(to_number), type(to_type), 
                     inputs(to_inputs), output(to_output), cycles(to_cycles), alap(to_alap), 
-                    asap(to_asap)  {}
+                    asap(to_asap), branches(to_branches), path(to_path)  {}
 
 Operation::Operation(const Operation& to_copy)
 {
@@ -22,6 +23,7 @@ Operation::Operation(const Operation& to_copy)
     cycles = to_copy.getCycles();
     alap = to_copy.getAlap();
     asap = to_copy.getAsap();
+    branches = to_copy.getBranches();
 }
 
 void Operation::operator = (const Operation& to_copy)
@@ -33,6 +35,7 @@ void Operation::operator = (const Operation& to_copy)
     cycles = to_copy.getCycles();
     alap = to_copy.getAlap();
     asap = to_copy.getAsap();
+    branches = to_copy.getBranches();
 }
 
 vector<string> Operation::getInputs() const
@@ -40,9 +43,29 @@ vector<string> Operation::getInputs() const
     return inputs;
 }
 
+vector<Operation> Operation::getBranches() const
+{
+    return branches;
+}
+
+vector<Operation> Operation::getPath() const
+{
+    return path;
+}
+
 void Operation::setInputs(vector<string> to_set)
 {
     inputs = to_set;
+}
+
+void Operation::setBranches(vector<Operation> to_set)
+{
+    branches = to_set;
+}
+
+void Operation::setPath(vector<Operation> to_set)
+{
+    path = to_set;
 }
 
 void Operation::add_input(string to_add)

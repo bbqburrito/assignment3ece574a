@@ -5,6 +5,8 @@
 //
 //
 
+
+
 #include "schedule.h"
 schedule::schedule(){
     this->aluprob = vector<float>(0);
@@ -431,4 +433,102 @@ void schedule::forceschedule(vector<Common>&mod,int latency)
     mod.at(i).setTimeFrame(time);
   }
    
+}
+
+//public wrapper for follow branch to end function. 
+int schedule::navigateBranch(int path_length, Operation branch_at, vector<Operation>& to_end)
+{
+    if(branch_at == schedulerGraph.getV0())
+    {
+        return path_length;
+    }
+
+    if(branch_at.getBranches().size())
+    {
+        to_end = ifScheduler(branch_at, path_length);
+        return path_length;
+    }
+
+    return navigateBranch(path_length, branch_at, to_end, branch_at.getPath());
+}
+
+//private function to recursively follow branch to end.
+int schedule::navigateBranch(int path_length, Operation branch_at, 
+                                        vector<Operation>& to_end, vector<Operation> which_branch)
+{
+    Operation next_branch;
+    to_end.push_back(branch_at);
+    path_length += branch_at.getCycles();
+    if(branch_at.getBranches().size())
+    {
+        to_end = ifScheduler(branch_at, path_length);
+        return path_length;
+    }
+
+    //find Operations in graph on branch with branch_at output as input
+    for(auto it0: schedulerGraph.getVertices())
+    {
+        for(auto it1: it0.getInputs())
+        {
+            if(it1 == branch_at.getOutput())
+            {
+                if(it1.getPath)
+            }
+        }
+    }
+
+    return navigateBranch(path_length, branch_at.getOutput(), to_end, branch_at.getPath());
+}
+
+//walk possible paths of if statement. throws "not_there" and "not_mux"
+//path parameter defaults to zero.
+vector<Operation> schedule::ifScheduler(Operation branch_at, int& total_path_length)
+{
+    Operation current;
+    Operation next;
+    vector<Operation> scheduled_branch;
+    vector<Operation> temp_branch;
+    string exist_error = "not_there";
+    string type_error = "not_mux";
+    int path_length = 0;
+
+
+    //if parameter not in Operations vector, throw error 
+    if(find(schedulerGraph.getVertices().begin(), schedulerGraph.getVertices().end(), branch_at) == 
+            schedulerGraph.getVertices().end())
+    {
+        throw exist_error;
+    }
+
+    //ensure parameter is a mux for an if statement
+    if(branch_at.getType() != "MUX2X1" || (branch_at.getBranches().size() == 0))
+    {
+        throw type_error;
+    }
+  
+    //find Operation in graph and place at front of return vector
+    for (auto it: schedulerGraph.getVertices())
+    {
+        if(it == branch_at)
+        {
+            scheduled_branch.push_back(it);
+        }
+    }
+
+    //get each path in if statement, place longest path in return vector
+
+    //add cycles for branch_at operation
+    path += scheduled_branch.front().getCycles();
+    current = scheduled_branch.front();
+    for(auto it: scheduled_branch.front().getBranches())
+    {
+        current = it;
+        //iterate through path from each output
+        while(current != schedulerGraph.getV0())
+        {
+
+        }
+    }
+
+        
 }

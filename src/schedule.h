@@ -8,6 +8,7 @@
 #ifndef schedule_h
 #define schedule_h
 
+#pragma once
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
@@ -16,6 +17,7 @@
 #include <sstream>
 #include "variables.h"
 #include "common.h"
+#include "CDFG_graph.h"
 using namespace std;
 
 class schedule {
@@ -29,6 +31,11 @@ private:
     vector<float>aluprob;//probabilities for ALU
     vector<float>mulprob;//probabilities for MUL
     vector<float>divmodprob;//probabilities for DIV/MOD
+    CDFG_graph schedulerGraph;
+
+    int navigateBranch(int path_length, Operation branch_at, 
+                                vector<Operation>& to_end, vector<Operation> which_branch);
+    
 public:
     
     
@@ -43,6 +50,8 @@ public:
     float successorForce(vector<Common>&mod,Common prenode, int scheduleTime);
     float predecessorForce(vector<Common>&mod,Common nextnode, int scheduleTime);
     void forceschedule(vector<Common>&mod,int latency);
+    vector<Operation> ifScheduler(Operation branch_at, int & total_path_length);
+    int navigateBranch(int path_lenth, Operation branch_at, vector<Operation>& to_end);
 
     string getName();
     string getType();

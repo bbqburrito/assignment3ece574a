@@ -15,12 +15,17 @@ class Operation
     public:
     Operation();
     Operation(int to_number, string to_type, vector<string> to_inputs, string to_output,
-                    int to_cycles, int to_alap, int to_asap);
+                    int to_cycles, int to_alap, int to_asap, vector<Operation> to_branches, 
+                    vector<Operation> to_path);
     Operation(const Operation& to_copy);
     void operator= (const Operation& to_copy);
     inline bool operator== (const Operation& to_compare) const{   //inline == comparator. 
                                                             //checks Operation numbers to see if equal)
         return (to_compare.getNumber() == number);
+    }
+    inline bool operator!= (const Operation& to_compare) const{     //inline != operator
+                                                            //returns conplement of == operator
+        return(to_compare.getNumber() != number);
     }
     ~Operation();
     inline int getNumber() const{
@@ -62,9 +67,14 @@ class Operation
         asap = to_set;
     }
     vector<string> getInputs() const;
+    vector<Operation> getPath() const;
+    vector<Operation> getBranches() const;
     void setInputs(vector<string> to_set);
+    void setBranches(vector<Operation> to_set);
+    void setPath(vector<Operation> to_set);
     void add_input(string to_add);
     void list_inputs() const;
+    
 
     protected:
     int number;             // int identifier for operation node
@@ -74,6 +84,8 @@ class Operation
     int cycles;             // number of cycles for operation. 
     int alap;               // alap schedule time for operation
     int asap;               // asap scedule time for operation
+    vector<Operation> branches;    //if Operation is an if statement, holds next operation. blank otherwise
+    vector<Operation> path;     //holds branches in Operation's path
 
 };
 
@@ -110,6 +122,14 @@ class CDFG_graph
     inline void setVn(Operation to_set) {
         v_n = to_set;
     }
+    inline int getNumber() const
+    {
+        return number;
+    }
+    inline void setNumber(int to_set) {
+        number = to_set;
+    }
+    
     void buildCDFG();
     void addVertex(Operation to_add);
     void displayVertices() const;
@@ -122,6 +142,7 @@ class CDFG_graph
     vector<Operation> vertices;
     Operation v0;                   //begin null node - may not need
     Operation v_n;                  //end null node
+    int number;                     //number of nodes on graph
 
 
 
