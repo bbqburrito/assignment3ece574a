@@ -31,7 +31,7 @@ public:
     //explicit Common(const Common &obj);
     //Common operator = (Common const &obj);
     Common();
-   vector<Common> convert(vector<string> to_parse, vector<variables> var);
+    vector<Common> convert(vector<string> to_parse, vector<variables> var);
     Common(string to_parse, vector<variables> var);
     int ifparser(int i,vector<string> lines, vector<Common> module);
     string parse_variables(string to_convert, int datwidth);
@@ -53,38 +53,12 @@ public:
     void setline(string line);
     void setopout(string op_out);
     void setsign(string issigned);
-     void setdatawidth(int datawidth);
+    void setdatawidth(int datawidth);
     void setopin(vector<string> op_in);//input in each operation
-    /*int get_REG_moduleNum() const;
-     int get_INC_moduleNum() const;
-     int get_DEC_moduleNum() const;
-     int get_ADD_moduleNum() const;
-     int get_SUB_moduleNum() const;
-     int get_MUL_moduleNum() const;
-     int get_COMP_GT_moduleNum() const;
-     int get_COMP_LT_moduleNum() const;
-     int get_COMP_EQ_moduleNum() const;
-     int get_MUX2X1_moduleNum() const;
-     int get_SHR_moduleNum() const;
-     int get_SHL_moduleNum() const;
-     int get_DIV_moduleNum() const;
-     int get_MOD_moduleNum() const;
-     void set_REG_moduleNum(int to_set);
-     void set_INC_moduleNum(int to_set);
-     void set_DEC_moduleNum(int to_set);
-     void set_ADD_moduleNum(int to_set);
-     void set_SUB_moduleNum(int to_set);
-     void set_MUL_moduleNum(int to_set);
-     void set_COMP_GT_moduleNum(int to_set);
-     void set_COMP_LT_moduleNum(int to_set);
-     void set_COMP_EQ_moduleNum(int to_set);
-     void set_MUX2X1_moduleNum(int to_set);
-     void set_SHR_moduleNum(int to_set);
-     void set_SHL_moduleNum(int to_set);
-     void set_DIV_moduleNum(int to_set);
-     void set_MOD_moduleNum(int to_set);
-     */
-    
+    void setforce(float forces);
+    void updateAlap(int time);
+    void updateAsap(int time);
+
 private:
     static int REG_moduleNum;
     static int INC_moduleNum;
@@ -111,4 +85,5 @@ private:
     vector<int> timeFrame;
     //vector of 2 integers,first is scheduled time in asap,second is scheduled time in alap,third is forced schedule time
     int timewidth;
+    vector<float> force;
 };
