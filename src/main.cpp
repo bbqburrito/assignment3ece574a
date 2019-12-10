@@ -211,13 +211,7 @@ int main(int argc, char* argv[]){
             verilog<<"S"<<j<<": begin"<<endl;//start from S1 state
             for(i=1;i<numstate;i++){
                 for(k=0;k<mod.size();k++){//double check and print the node 
-                    if ((i == mod.at(k).getTimeFrame().at(0) ) && (mod.at(k).getoperation().compare("MOD") == 0 || mod.at(k).getoperation().compare("DIV") == 0)) {
-                        verilog << "\t" << mod.at(k).getline() << ";" << endl;
-                    }//if the scheduled time matches the state number
-                    else if ((i ==mod.at(k).getTimeFrame().at(0) ) && mod.at(k).getoperation().compare("MUL") == 0) {
-                        verilog << "\t" << mod.at(k).getline() << ";" << endl;
-                    }
-                    else if (i == mod.at(k).getTimeFrame().at(0) && mod.at(k).getoperation().compare("MOD") != 0 && mod.at(k).getoperation().compare("DIV") != 0 && mod.at(k).getoperation().compare("MUL") != 0) {
+                     if (i == mod.at(k).getTimeFrame().at(0)) {
                         verilog << "\t" << mod.at(k).getline() << ";" << endl;
                     }
                 }
