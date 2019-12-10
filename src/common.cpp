@@ -78,6 +78,7 @@ int Common::ifparser(string lines,  vector<Common>& module,
     vector<Operation> to_if_branches_row;
     Operation to_if_branches;
     vector<string> to_inputs;
+    size_t it, it_next;
 
    
     content >> if_dummy >> parenthesis >> if_var;
@@ -103,7 +104,7 @@ int Common::ifparser(string lines,  vector<Common>& module,
         to_inputs.clear();
         to_if_branches.clear();
         
-        if(var_dummy == "if")
+        if(var_dummy == "if")               //if another branch, parse that branch
         {
             next = var_dummy + content.str();
             j = ifparser(next, module, if_branches, level + 1);
@@ -111,9 +112,13 @@ int Common::ifparser(string lines,  vector<Common>& module,
 
         to_inputs.push_back(var_dummy);
 
-        content >> op_dummy;
+        //read the rest of the line into string
+        content.getline(next, 256);
 
-        content >> var_dummy;
+        it = next.find_first_of(' ');
+
+
+
 
     }
 
