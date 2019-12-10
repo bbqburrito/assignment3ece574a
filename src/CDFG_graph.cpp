@@ -89,21 +89,26 @@ CDFG_graph::~CDFG_graph()
 CDFG_graph::CDFG_graph(const CDFG_graph& to_copy)
 {
     CDFG = to_copy.getCDFG();
+    if_vectors = to_copy.getIfVectors();
     vertices = to_copy.getVertices();
     v0 = to_copy.getV0();
     v_n = to_copy.getVn();
+    number = to_copy.getNumber();
 }
 
 void CDFG_graph::operator = (const CDFG_graph& to_copy)
 {
     CDFG = to_copy.getCDFG();
+    if_vectors = to_copy.getIfVectors();
     vertices = to_copy.getVertices();
     v0 = to_copy.getV0();
     v_n = to_copy.getVn();
+    number = to_copy.getNumber();
 }
 
 
 //add edge to directed graph
+//if arguments are equivalent, place in graph as vertex unless already in graph
 void CDFG_graph::add_edge(Operation from, Operation to)
 {
     bool exists = false;        //temp to test whether need to create new row
@@ -116,10 +121,13 @@ void CDFG_graph::add_edge(Operation from, Operation to)
         {
             exists = true;
             to_row = i;
-            to_row.push_back(to);
-            CDFG.erase(remove(CDFG.begin(), CDFG.end(), i), CDFG.end());
-            CDFG.push_back(to_row);
-
+            if(from != to)      //if arguments are not the same, place the edges into the graph
+            {
+                to_row.push_back(to);
+                CDFG.erase(remove(CDFG.begin(), CDFG.end(), i), CDFG.end());
+                CDFG.push_back(to_row);
+            }
+            continue;
         }
         int x = 1;              //operation for debugging
         
@@ -128,8 +136,12 @@ void CDFG_graph::add_edge(Operation from, Operation to)
     if(!exists)
     {
         to_row.push_back(from);
-        to_row.push_back(to);
+        if(from != to)
+        {
+            to_row.push_back(to);
+        }
         CDFG.push_back(to_row);
+        
     }    
 }
 
@@ -185,13 +197,14 @@ void CDFG_graph::buildCDFG()
 {
     bool is_inserted = false;
     bool is_present = false;
-    vector<string> v0_inputs;   //first level inputs
-    vector<string> v_inputs;  //hold inputs for each level
+    vector<string> v0_inputs;       //first level inputs
+    vector<string> v_inputs;        //hold inputs for each level
     vector<string> v_next_inputs;   //hold inputs for next level
     vector<string> final_outputs;   //hold outputs of netlist
-    vector<string> to_outputs;  //hold all outputs
-    vector<Operation> level;    //hold nodes for each level
+    vector<string> to_outputs;      //hold all outputs
+    vector<Operation> level;        //hold nodes for each level
     vector<Operation> next_level;   //hold nodes for next level
+    vector<Operation> first_row;    //first row - all inputs are from v0
     
     //find all outputs
     for (auto i: vertices)
@@ -278,6 +291,42 @@ void CDFG_graph::buildCDFG()
         }
     }
     
+    is_present = false;
+    //find operations with only v0 inputs
+    for (auto it: vertices)                 //for each vertice
+    {
+        for (auto jt: v0_inputs)            //for each v0 input
+        {
+            for(auto kt: it.getInputs())    //for each input to the vertex
+            {
+                if (jt == kt)               //if this v0 input = this vertex input
+                {                           //set found boolean. go to next input.
+                    is_present = true;
+                    continue;
+                }
+                is_present = false;
+            }
+        }
+        if(is_present)
+        {
+            first_row.push_back(it);
+        }            
+        is_present = false;                 //reset boolean for next input
+    }
+
+    //insert first row into graph
+    for (auto it: first_row)
+    {
+        add_edge(it, it);
+    }
+    
+    //build CDFG from beginning. iterate through all vertices. put those with inputs from 
+    //outputs of previous level into next level
+    for (auto it: first_row)                 //iterate through all vertices
+    {
+        if(it.getType() == "if")
+
+    }
     //build final nodes in CDFG
     for (auto i: final_outputs)
     {
@@ -358,5 +407,25 @@ void CDFG_graph::buildCDFG()
         v_inputs = v_next_inputs;
         v_next_inputs.clear();          //clear v_next_inputs for next iteration
 
+    }
+}
+
+void CDFG_graph::findIfVectors()
+{
+    vector<Operation> ifOperations;
+    vector<Operation> to_row;
+    for (auto it: vertices)             //find all if Operations
+    {
+        if (it.getType() == "if")
+        {
+            ifOperations.push_back(it);
+        }
+    }
+
+    //create if branches. store branch names in Operations in branch
+    for (auto it: ifOperations)
+    {
+        to_row.push_back(it);
+        
     }
 }

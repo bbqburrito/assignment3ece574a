@@ -96,7 +96,7 @@ class CDFG_graph
     CDFG_graph(const CDFG_graph& to_copy);
     void operator = (const CDFG_graph& to_copy);
     ~CDFG_graph();
-    void add_edge(Operation u, Operation v);
+    void add_edge(Operation from, Operation to);
     void displayCDFG() const;
     inline vector<vector<Operation>>getCDFG() const{
         return CDFG;
@@ -129,16 +129,24 @@ class CDFG_graph
     inline void setNumber(int to_set) {
         number = to_set;
     }
+    inline vector<vector<Operation>> getIfVectors() const   {
+        return if_vectors;
+    }
+    inline void setIfVectors(vector<vector<Operation>> to_set)  {
+        if_vectors = to_set;
+    }
     
     void buildCDFG();
     void addVertex(Operation to_add);
     void displayVertices() const;
+    void findIfVectors();
     
     
     
     protected:
 
     vector<vector<Operation>> CDFG;
+    vector<vector<Operation>> if_vectors;
     vector<Operation> vertices;
     Operation v0;                   //begin null node - may not need
     Operation v_n;                  //end null node
