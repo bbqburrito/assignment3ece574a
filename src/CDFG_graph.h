@@ -74,6 +74,7 @@ class Operation
     void setPath(vector<Operation> to_set);
     void add_input(string to_add);
     void list_inputs() const;
+    void clear();
     
 
     protected:
@@ -84,7 +85,7 @@ class Operation
     int cycles;             // number of cycles for operation. 
     int alap;               // alap schedule time for operation
     int asap;               // asap scedule time for operation
-    vector<Operation> branches;    //if Operation is an if statement, holds next operation. blank otherwise
+    vector<Operation> branches;    //if Operation is an if statement, holds next operations. blank otherwise
     vector<Operation> path;     //holds branches in Operation's path
 
 };

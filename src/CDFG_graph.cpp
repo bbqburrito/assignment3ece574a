@@ -81,6 +81,19 @@ void Operation::list_inputs() const
     }
 }
 
+void Operation::clear()
+{
+    number = 0;
+    type.clear();
+    inputs.clear();
+    output.clear();
+    cycles = 0;
+    alap = 0;
+    asap = 0;
+    branches.clear();
+    path.clear();
+}
+
 CDFG_graph::CDFG_graph():CDFG{}, vertices{} {}
 
 CDFG_graph::~CDFG_graph()

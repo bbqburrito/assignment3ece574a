@@ -6,12 +6,14 @@
 ///                                               ///
 /////////////////////////////////////////////////////
 
+#pragma once
 #include <iostream>
 #include <string>
 #include <vector>
 #include <map>
 #include <algorithm>
 #include <cstdio>
+#include "CDFG_graph.h"
 using std::string;
 using namespace std;
 //class Module        //not used unless we find a need for something to contain
@@ -33,7 +35,8 @@ public:
     Common();
     vector<Common> convert(vector<string> to_parse, vector<variables> var);
     Common(string to_parse, vector<variables> var);
-    int ifparser(int i,vector<string> lines, vector<Common> module);
+    int ifparser(string lines, vector<Common>& module, 
+                    vector<vector<Operation>& if_branches, int level = 0);
     string parse_variables(string to_convert, int datwidth);
     void getfromvar(vector<variables> var,char* str[100],int index);
     double calcpath(string op,int width);//calculate criticalpath
@@ -86,4 +89,6 @@ private:
     //vector of 2 integers,first is scheduled time in asap,second is scheduled time in alap,third is forced schedule time
     int timewidth;
     vector<float> force;
+    
+    int ifparser(vector<)
 };

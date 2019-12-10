@@ -1,5 +1,7 @@
+#pragma once
 #include "common.h"
 #include "variables.h"
+#include "CDFG_graph.h"
 //using  cout;
 //using  endl;
 //using  string;
@@ -58,23 +60,75 @@ vector<Common> Common::convert(vector<string> lines, vector<variables> var)
     return module;
   
 }
-int Common::ifparser(int i,vector<string> lines,  vector<Common> module)
+
+//parses if statements into Common vector and adds to an Operation 2d vector
+//throws "not if" if not an if statement.
+int Common::ifparser(string lines,  vector<Common>& module, 
+                        vector<vector<Operation>>& if_branches, int level = 0)
 {
-    stringstream content(lines.at(i));
+    string not_if_error = "not if";
+    stringstream string2;
+    string next;
+    stringstream content(lines);
     string if_dummy, parenthesis, if_var;//variable in condition
-    unsigned int j;
+    string var_dummy, op_dummy, 
+    unsigned int j = 0;
     string elsestate = "";
+    Common to_module;
+    vector<Operation> to_if_branches_row;
+    Operation to_if_branches;
+    vector<string> to_inputs;
+
    
     content >> if_dummy >> parenthesis >> if_var;
-    for (j = i + 1; j < lines.size(); j++) {
+
+    if(if_dummy != "if")
+    {
+        throw not_if_error;
+    }
+
+    //place if statement at front of Operation vector
+    to_inputs.push_back(if_var);
+
+    to_if_branches.setInputs(to_inputs);
+    
+    to_if_branches_row.push_back(to_if_branches);
+
+    common.ignore(100, '\n');               //to next line
+
+    content >> var_dummy;
+
+    while(var_dummy != "}")
+    {
+        to_inputs.clear();
+        to_if_branches.clear();
+        
+        if(var_dummy == "if")
+        {
+            next = var_dummy + content.str();
+            j = ifparser(next, module, if_branches, level + 1);
+        }
+
+        to_inputs.push_back(var_dummy);
+
+        content >> op_dummy;
+
+        content >> var_dummy;
+
+    }
+
+
+
+
+    /*for (j ; j < lines.size(); j++) {
         stringstream string2(lines.at(j));
         string next;
         string2 >> next;
        // module.at(i).setline(next);//read each line in if statement
         if (next.compare("}") == 0) {//find the end of this if statement
-            i = j + 1;//move to the next
-            if (lines.size() > i) {
-                stringstream string3(lines.at(i));
+            line_number = j + 1;//move to the next
+            if (lines.size() > line_number) {
+                stringstream string3(lines.at(line_number));
                 string3 >> elsestate;//if there's no more lines
             }
             else {
@@ -117,7 +171,7 @@ int Common::ifparser(int i,vector<string> lines,  vector<Common> module)
 
             }
         }
-    }
+    }*/
     return j;
     
 }
