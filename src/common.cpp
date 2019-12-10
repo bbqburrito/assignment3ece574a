@@ -804,3 +804,10 @@ vector<int> Common::getTimeFrame()
 void Common::setTimeFrame(int edge){//
         timeFrame.push_back(edge);
 }
+void Common::updateAlap(int time){//update alap time after each force-directed iteration
+    this->timeFrame.at(1)=time;
+}
+void Common::updateAsap(int time){
+    this->timeFrame.at(0)=time;
+
+}

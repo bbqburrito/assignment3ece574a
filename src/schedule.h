@@ -2,13 +2,12 @@
 //  schedule.hpp
 //  hlsyn
 //
-//  
+//
 //
 
 #ifndef schedule_h
 #define schedule_h
 
-#pragma once
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
@@ -17,7 +16,6 @@
 #include <sstream>
 #include "variables.h"
 #include "common.h"
-#include "CDFG_graph.h"
 using namespace std;
 
 class schedule {
@@ -31,11 +29,6 @@ private:
     vector<float>aluprob;//probabilities for ALU
     vector<float>mulprob;//probabilities for MUL
     vector<float>divmodprob;//probabilities for DIV/MOD
-    CDFG_graph schedulerGraph;
-
-    int navigateBranch(int path_length, Operation branch_at, 
-                                vector<Operation>& to_end, vector<Operation> which_branch);
-    
 public:
     
     
@@ -47,12 +40,11 @@ public:
     vector<int> hassuccessor(vector<Common>mod,string current);
     void probability(vector<Common>&mod,int latency);
     vector<float> selfForce(Common &tempmod, int start, int end);
-    float successorForce(vector<Common>&mod,Common prenode, int scheduleTime);
+    float successorForce(vector<Common>&mod,Common currnode,Common prenode, int scheduleTime);
     float predecessorForce(vector<Common>&mod,Common nextnode, int scheduleTime);
     void forceschedule(vector<Common>&mod,int latency);
-    vector<Operation> ifScheduler(Operation branch_at, int & total_path_length);
-    int navigateBranch(int path_lenth, Operation branch_at, vector<Operation>& to_end);
-
+    void updateAsap(vector<Common>&mod,Common &node,int edge);
+    void updateAlap(vector<Common>&mod,Common &node,int edge);
     string getName();
     string getType();
     int getBitWidth();
@@ -63,7 +55,7 @@ public:
     void setname(string name);
     void setdummy(string dummy);
     void setsign(string issigned);
-};
+    };
 
 
 

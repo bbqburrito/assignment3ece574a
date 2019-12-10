@@ -5,8 +5,6 @@
 //
 //
 
-
-
 #include "schedule.h"
 schedule::schedule(){
     this->aluprob = vector<float>(0);
@@ -322,12 +320,12 @@ void schedule::forceschedule(vector<Common>&mod,int latency)
 {//unsigned int n;
    //  for(n = 0; n < mod.size(); n++){
     int size=mod.size();
-    for(size;size>0;size--){//asap schedule for everynode
-        asap(mod);
-    }
-    for(size=mod.size();size>0;size--){//alap schedule for everynode
-        alap(mod, latency);
-    }
+//    for(size;size>0;size--){//asap schedule for everynode
+//        asap(mod);
+//    }
+//    for(size=mod.size();size>0;size--){//alap schedule for everynode
+//        alap(mod, latency);
+//    }
     
     
     unsigned int scheduleTime;      //assumed schedule time
@@ -335,47 +333,34 @@ void schedule::forceschedule(vector<Common>&mod,int latency)
     int time;                //final schedule time
     int tempTime;            //current schedule time
     float tempForce;
-   unsigned int temp;
+   //unsigned int temp;
     float minForce = 10000;    //random lowest force
     vector<float> force;    //total force for each node
     unsigned int i = 0;
     unsigned int j = 0;
     unsigned int k = 0;
     unsigned int m = 0;
-    unsigned int flag= 0;
+    //unsigned int flag= 0;
 
      unsigned int pre = 0;
     probability(mod,latency);//calculate the probability for each operation type of each time
    
     for (i = 0; i < mod.size(); i++)
-    {minForce = 10000;minForce = 10000;flag=0;
+    {//minForce = 10000;
+        tempForce = 10000;//flag=0;
         //check if is already scheduled
         if(mod.at(i).getTimeFrame().size() == 2)
         {
-             scheduleTime =  mod.at(i).getTimeFrame().at(0) - 1;
-            //calculate self force for each assumed time
-            tempForce = 10000;
-           
-            for(m = 0; m < mod.at(i).getopin().size(); m++){
-                pre=haspredecessor(mod, mod.at(i).getopin().at(m));
-                if(pre!=-1){
-                    if(mod.at(pre).getTimeFrame().size()==3){
-                        temp =  mod.at(pre).getTimeFrame().at(2);
-                        if(scheduleTime<temp) scheduleTime=temp;
-                        else temp=scheduleTime;
-                        flag=1;
-                    }
-                }
-            }
-//            force = selfForce(mod.at(i), mod.at(i).getTimeFrame().at(0)-1, mod.at(i).getTimeFrame().at(1));
-            force = selfForce(mod.at(i), scheduleTime, mod.at(i).getTimeFrame().at(1));
+                tempForce = 10000;
+           force = selfForce(mod.at(i), mod.at(i).getTimeFrame().at(0)-1, mod.at(i).getTimeFrame().at(1));
+            //force = selfForce(mod.at(i), scheduleTime, mod.at(i).getTimeFrame().at(1));
 
             //iterate thorugh the self forces, add predecessor and successor forces to the self forces
             
-//           scheduleTime =  mod.at(i).getTimeFrame().at(0) - 1;
+         // scheduleTime =  mod.at(i).getTimeFrame().at(0) - 1;
             for (j = 0; j < force.size(); j++)
             {
-               // scheduleTime = j + mod.at(i).getTimeFrame().at(0) - 1;
+                scheduleTime = j + mod.at(i).getTimeFrame().at(0) - 1;
                 //iterate through the successor nodes
                 vector<int> next=hassuccessor(mod, mod.at(i).getopout());
                 //add successorForce of each successor node
@@ -396,13 +381,13 @@ void schedule::forceschedule(vector<Common>&mod,int latency)
                 if (force.at(j) < tempForce)
                 {
                     tempForce = force.at(j);
-                    if(flag==1){
-                        tempTime = temp+1+ j;}
-                    else{
+//                    if(flag==1){
+//                        tempTime = temp+1+ j;}
+//                    else{
                         tempTime = mod.at(i).getTimeFrame().at(0) + j;
-                    }
+                    //}
                 }
-                scheduleTime+=1;
+               // scheduleTime+=1;
             }
             //determine the final schedule time to be the one with minimum force
             
@@ -411,124 +396,77 @@ void schedule::forceschedule(vector<Common>&mod,int latency)
                 minForce = tempForce;
                 nodeindex = i;
                 time = tempTime;
-                mod.at(i).setforce(tempForce);
+               // mod.at(i).setforce(tempForce);
             }
         }
-//       
-   // }
-//            for ( m = 0; m < mod.at(nodeindex).getopin().size(); m++)
-//            {
-//
-//                pre=haspredecessor(mod, mod.at(nodeindex).getopin().at(m));
-//                if(pre!=-1){
-//                    if(mod.at(pre).getTimeFrame().size()==3){
-//                    if(time==mod.at(pre).getTimeFrame().at(2)){
-//                        time=time+1;
-//                        break;
-//                    }
-//                    }
-//                }}
-
-        
-    mod.at(i).setTimeFrame(time);
-  }
+    }
+        updateAsap(mod,mod.at(nodeindex), time);
+        updateAlap(mod,mod.at(nodeindex), time);
+        mod.at(nodeindex).setTimeFrame(time);
+  
    
 }
-
-//public wrapper for follow branch to end function. 
-int schedule::navigateBranch(int path_length, Operation branch_at, vector<Operation>& to_end)
+void schedule::updateAsap(vector<Common>&mod,Common &node,int edge)
 {
-    if(branch_at == schedulerGraph.getV0())
-    {
-        return path_length;
-    }
+    unsigned int i;
+    
+    node.updateAsap(edge);
+    vector<int> next=hassuccessor(mod, node.getopout());
 
-    if(branch_at.getBranches().size())
-    {
-        to_end = ifScheduler(branch_at, path_length);
-        return path_length;
+    for(i=0;i<next.size();i++){
+        
+   
+        if ((mod.at(next.at(i)).getoperation() == "DIV") || (mod.at(next.at(i)).getoperation() == "MOD"))
+        {
+            //if the assumed time of the previous operation does not effect
+            //when this operation is scheduled
+            if ((edge + 2) >= mod.at(next.at(i)).getTimeFrame().at(0))
+                updateAsap(mod,mod.at(next.at(i)),(edge + 3));
+        }
+        else if (mod.at(next.at(i)).getoperation() == "MUL")
+        {
+            if((edge + 1) >= mod.at(next.at(i)).getTimeFrame().at(0))
+               
+             updateAsap(mod,mod.at(next.at(i)),(edge + 2));
+        }
+        else
+        {
+            if (edge >= mod.at(next.at(i)).getTimeFrame().at(0))
+            
+             updateAsap(mod,mod.at(next.at(i)),(edge + 1));
+        }
     }
-
-    return navigateBranch(path_length, branch_at, to_end, branch_at.getPath());
 }
 
-//private function to recursively follow branch to end.
-int schedule::navigateBranch(int path_length, Operation branch_at, 
-                                        vector<Operation>& to_end, vector<Operation> which_branch)
+void schedule::updateAlap(vector<Common>&mod,Common &node,int edge)
 {
-    Operation next_branch;
-    to_end.push_back(branch_at);
-    path_length += branch_at.getCycles();
-    if(branch_at.getBranches().size())
+    unsigned int m;
+    unsigned int pre;
+    node.updateAlap(edge);
+    for (m = 0; m < node.getopin().size(); m++)
     {
-        to_end = ifScheduler(branch_at, path_length);
-        return path_length;
-    }
-
-    //find Operations in graph on branch with branch_at output as input
-    for(auto it0: schedulerGraph.getVertices())
-    {
-        for(auto it1: it0.getInputs())
-        {
-            if(it1 == branch_at.getOutput())
+        //add predecessor  forces of each predecessor node to the total force
+        pre=haspredecessor(mod, node.getopin().at(m));
+        if(pre!=-1)
+{
+            if ((node.getoperation() == "DIV") || (node.getoperation() == "MOD"))
             {
-                if(it1.getPath)
+                //if the assumed time of the previous operation does not effect
+                //when this operation is scheduled
+                if ((edge - 2) <= mod.at(pre).getTimeFrame().at(1))
+                    updateAlap(mod,mod.at(pre),edge - 3);
+            }
+            else if (node.getoperation() == "MUL")
+            {
+                if((edge - 1) <= mod.at(pre).getTimeFrame().at(1))
+                    updateAlap(mod,mod.at(pre),edge - 2);
+            }
+            else
+            {
+                if (edge <= mod.at(pre).getTimeFrame().at(1))
+                    updateAlap(mod,mod.at(pre),edge - 1);
+                
             }
         }
     }
-
-    return navigateBranch(path_length, branch_at.getOutput(), to_end, branch_at.getPath());
-}
-
-//walk possible paths of if statement. throws "not_there" and "not_mux"
-//path parameter defaults to zero.
-vector<Operation> schedule::ifScheduler(Operation branch_at, int& total_path_length)
-{
-    Operation current;
-    Operation next;
-    vector<Operation> scheduled_branch;
-    vector<Operation> temp_branch;
-    string exist_error = "not_there";
-    string type_error = "not_mux";
-    int path_length = 0;
-
-
-    //if parameter not in Operations vector, throw error 
-    if(find(schedulerGraph.getVertices().begin(), schedulerGraph.getVertices().end(), branch_at) == 
-            schedulerGraph.getVertices().end())
-    {
-        throw exist_error;
-    }
-
-    //ensure parameter is a mux for an if statement
-    if(branch_at.getType() != "MUX2X1" || (branch_at.getBranches().size() == 0))
-    {
-        throw type_error;
-    }
-  
-    //find Operation in graph and place at front of return vector
-    for (auto it: schedulerGraph.getVertices())
-    {
-        if(it == branch_at)
-        {
-            scheduled_branch.push_back(it);
-        }
-    }
-
-    //get each path in if statement, place longest path in return vector
-
-    //add cycles for branch_at operation
-    path += scheduled_branch.front().getCycles();
-    current = scheduled_branch.front();
-    for(auto it: scheduled_branch.front().getBranches())
-    {
-        current = it;
-        //iterate through path from each output
-        while(current != schedulerGraph.getV0())
-        {
-
-        }
-    }
-
-        
 }

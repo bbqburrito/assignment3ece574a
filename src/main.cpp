@@ -147,15 +147,21 @@ int main(int argc, char* argv[]){
     ofstream verilog;
     char* outfile=argv[3];
     string circuit(outfile);
-    
+    unsigned int size;
     found=0;
-    unsigned int numstate=1+latency;//for test
+    unsigned int numstate=2+latency;//for test
     if(outfile!=NULL&&error==false){
         verilog.open(outfile);
         if(verilog.is_open()){
-           // for(i=0;i<mod.size();i++){
+            for(size=mod.size();size>0;size--){//asap schedule for everynode
+               toplevel.asap(mod);
+            }
+            for(size=mod.size();size>0;size--){//alap schedule for everynode
+                toplevel.alap(mod, latency);
+            }
+           for(i=0;i<mod.size();i++){
                 toplevel.forceschedule(mod, latency);
-  
+           }
             verilog << "module HLSM" <<"("<<"clk,rst";
             for(i=0;i<var.size();i++){
                 if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="output"){
@@ -201,31 +207,43 @@ int main(int argc, char* argv[]){
             verilog<<"else"<<endl;
             verilog<<"StateNext <= wait;"<<endl;
             verilog<<"end"<<endl;
-            j=0;
+            j=1;
             verilog<<"S"<<j<<": begin"<<endl;
-            for(i=0;i<numstate;i++){
-                
-                //print each node
-                //if node j scheduled at this time
+            for(i=1;i<numstate;i++){
                 for(k=0;k<mod.size();k++){
-                    if(mod.at(k).getTimeFrame().at(2)==i){
-                        verilog<<mod.at(k).getline();
-                        verilog<<endl;
-                        found=1;
+                    if ((i == mod.at(k).getTimeFrame().at(0) ) && (mod.at(k).getoperation().compare("MOD") == 0 || mod.at(k).getoperation().compare("DIV") == 0)) {
+                        verilog << "\t" << mod.at(k).getline() << ";" << endl;
+                    }
+                    else if ((i ==mod.at(k).getTimeFrame().at(0) ) && mod.at(k).getoperation().compare("MUL") == 0) {
+                        verilog << "\t" << mod.at(k).getline() << ";" << endl;
+                    }
+                    else if (i == mod.at(k).getTimeFrame().at(0) && mod.at(k).getoperation().compare("MOD") != 0 && mod.at(k).getoperation().compare("DIV") != 0 && mod.at(k).getoperation().compare("MUL") != 0) {
+                        verilog << "\t" << mod.at(k).getline() << ";" << endl;
                     }
                 }
-                if (found ==1)
-                {
-                    
-                    
-                    //verilog<<mod.at(j).getline();
                     verilog<<"StateNext <= S"<<j+1<<";"<<endl;
-                    verilog<<"end"<<endl;
-                    verilog<<"S"<<j+1<<": begin"<<endl;
-                    j++;
-                }
-                // j++;
-                found =0;
+                                    verilog<<"end"<<endl;
+                                    verilog<<"S"<<j+1<<": begin"<<endl;
+                j++;
+//                //print each node
+//                //if node j scheduled at this time
+//                for(k=0;k<mod.size();k++){
+//                    if(mod.at(k).getTimeFrame().at(2)==i){
+//                        verilog<<mod.at(k).getline();
+//                        verilog<<endl;
+//                        found=1;
+//                    }
+//                }
+//                if (found ==1)
+//                {
+//          //verilog<<mod.at(j).getline();
+//                    verilog<<"StateNext <= S"<<j+1<<";"<<endl;
+//                    verilog<<"end"<<endl;
+//                    verilog<<"S"<<j+1<<": begin"<<endl;
+//                    j++;
+//                }
+//                // j++;
+//                found =0;
             }
             // verilog<<"S"<<numstate<<": begin"<<endl;
             verilog << "Done <= 1;" << endl;
