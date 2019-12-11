@@ -400,8 +400,8 @@ void schedule::forceschedule(vector<Common>&mod,int latency)
             }
         }
     }
-        updateAsap(mod,mod.at(nodeindex), time);
-        updateAlap(mod,mod.at(nodeindex), time);
+//         updateAsap(mod,mod.at(nodeindex), time);
+//         updateAlap(mod,mod.at(nodeindex), time);
         mod.at(nodeindex).setTimeFrame(time);
   
    
