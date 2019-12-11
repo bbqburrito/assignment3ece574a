@@ -149,7 +149,7 @@ int main(int argc, char* argv[]){
     string circuit(outfile);
     unsigned int size;
     found=0;
-    unsigned int numstate=2+latency;//for test
+    unsigned int numstate=latency;//for test
     if(outfile!=NULL&&error==false){
         verilog.open(outfile);
         if(verilog.is_open()){
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]){
            for(i=0;i<mod.size();i++){
                 toplevel.forceschedule(mod, latency);
            }
-            verilog << "module HLSM" <<"("<<"clk,rst";
+            verilog << "module HLSM" <<"("<<"clk,rst,Start,Done";
             for(i=0;i<var.size();i++){
                 if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="output"){
                     verilog<<",";
@@ -172,7 +172,7 @@ int main(int argc, char* argv[]){
                 }
             }
             verilog<<");"<< endl;
-            verilog<<"input clk,rst;"<< endl;
+            verilog<<"input clk,rst,Start;"<< endl;
             verilog << "output reg Done;" << endl;
             //            for(int i=0;i<var.size();i++){
             //                verilog << var.at(i).getline();}
@@ -182,43 +182,49 @@ int main(int argc, char* argv[]){
             }
             //            for(int i=0;i<mod.size();i++){
             //                       verilog << mod.at(i).getline()<<endl;}
-            verilog << "parameter wait=0";
-            for(i=0;i<numstate;i++){
-                verilog<<", S"<<i<<"="<<i+1;
+            verilog << "parameter Wait=0,Final=0";
+            for(i=1;i<=numstate;i++){
+                verilog<<", S"<<i<<"="<<i;
                 
             }
             verilog<<";"<<endl;
-            verilog<<"reg [3:0] State, StateNext;"<<endl;
-            verilog<<"always @(posedge Clk) begin"<<endl;
-            verilog<<"if (Rst == 1)"<<endl;
-            verilog<<"Start<=0;"<<endl;
+            verilog<<"reg [5:0] State, StateNext;"<<endl;
+            verilog<<"always @(posedge clk) begin"<<endl;
+            verilog<<"if (rst == 1) begin"<<endl;
+          
             verilog<<"Done<=0;"<<endl;
-            verilog<<"State <= wait;"<<endl;
-            verilog<<"else"<<endl;
+            verilog<<"State <= Wait;"<<endl;
+             verilog<<"end"<<endl;
+            verilog<<"else begin"<<endl;
             verilog<<"State <= StateNext;"<<endl;
             verilog<<"end"<<endl;
+             verilog<<"end"<<endl;
             verilog<<endl;
             verilog<<"always @(*) begin"<<endl;
+             verilog<<"Done<=0;"<<endl;
             verilog<<"case (State)"<<endl;
-            verilog<<"Done<=0;"<<endl;
-            verilog<<"wait: begin"<<endl;
+       
+            verilog<<"Wait: begin"<<endl;
             verilog<<"if(Start==1)"<<endl;
-            verilog<<"StateNext <= S0;"<<endl;
+            verilog<<"StateNext <= S1;"<<endl;
             verilog<<"else"<<endl;
-            verilog<<"StateNext <= wait;"<<endl;
+            verilog<<"StateNext <= Wait;"<<endl;
             verilog<<"end"<<endl;
             j=1;
-            verilog<<"S"<<j<<": begin"<<endl;//start from S1 state
+            verilog<<"S"<<j<<": begin"<<endl;
             for(i=1;i<numstate;i++){
-                for(k=0;k<mod.size();k++){//double check and print the node 
-                     if (i == mod.at(k).getTimeFrame().at(0)) {
+                for(k=0;k<mod.size();k++){
+                    if (i == mod.at(k).getTimeFrame().at(0)) {
                         verilog << "\t" << mod.at(k).getline() << ";" << endl;
                     }
+                    
                 }
-                    verilog<<"StateNext <= S"<<j+1<<";"<<endl;
+//                if(i<numstate){
+                    verilog<<"StateNext <= S"<<i+1<<";"<<endl;
                                     verilog<<"end"<<endl;
-                                    verilog<<"S"<<j+1<<": begin"<<endl;
-                j++;
+                    verilog<<"S"<<i+1<<": begin"<<endl;
+                
+                   // j++;}
 //                //print each node
 //                //if node j scheduled at this time
 //                for(k=0;k<mod.size();k++){
@@ -240,8 +246,11 @@ int main(int argc, char* argv[]){
 //                found =0;
             }
             // verilog<<"S"<<numstate<<": begin"<<endl;
+            verilog<<"StateNext <= Final;"<<endl;
+              verilog<<"end"<<endl;
+              verilog<<"Final"<<": begin"<<endl;
             verilog << "Done <= 1;" << endl;
-            verilog << "StateNext <= S0;" << endl;
+            verilog << "StateNext <= Wait;" << endl;
             verilog<<"end"<<endl;
             verilog << "endcase" << endl;
             
