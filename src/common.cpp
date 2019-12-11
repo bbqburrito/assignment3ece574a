@@ -4,6 +4,7 @@
 //using  endl;
 //using  string;
 using namespace std;
+
 int Common::INC_moduleNum;
 int Common::REG_moduleNum;
 int Common::ADD_moduleNum;
@@ -20,15 +21,16 @@ int Common::MOD_moduleNum;
 int Common::DEC_moduleNum;
 Common::Common()
 {
-    this->op_out = "";//ouput of a operation
-    this->operation = "";//operation type
+    this->op_out = "";
+    this->operation = "";
     this->datawidth = 0;
     this->issigned="";
-    this->line="";//converted line
-    this->op_in={};//inputs of a operation,could be more than 1 input,so it's a vector
+    this->line="";
+    this->op_in={};
     this->latency=0;
     this->timeFrame = {};
     this->timewidth=0;
+    this->force={};
 }
 //to do: throw exceptions when empty and when any line cannot be converted to verilog
 //evaluate whether to divide parsing routines into functions
@@ -36,27 +38,27 @@ vector<Common> Common::convert(vector<string> lines, vector<variables> var)
 {unsigned int i;
     vector<Common> module;
     Common eachmod;
-   
+    
     string no_input = "//nothing";            //error message
     string converted;                       //contains return value
     
-//    if(lines.empty())                    //check for empty
-//    {
-//        return no_input;                    //to do: set error codes
-//    }
+    //    if(lines.empty())                    //check for empty
+    //    {
+    //        return no_input;                    //to do: set error codes
+    //    }
     for(i=0;i<lines.size();i++){
-   // if(to_parse.find("=") != string::npos){
+        // if(to_parse.find("=") != string::npos){
         if (lines.at(i).find("if") != string::npos)
         {
             i = ifparser(i, lines, module);//
         }
         else{
-         eachmod=Common(lines.at(i), var);
-        converted = eachmod.getline();//get converted line
-        module.push_back(eachmod);//add each module into a vector
+            eachmod=Common(lines.at(i), var);
+            converted = eachmod.getline();//get converted line
+            module.push_back(eachmod);//add each module into a vector
         }}
     return module;
-  
+    
 }
 int Common::ifparser(int i,vector<string> lines,  vector<Common> module)
 {
@@ -64,13 +66,13 @@ int Common::ifparser(int i,vector<string> lines,  vector<Common> module)
     string if_dummy, parenthesis, if_var;//variable in condition
     unsigned int j;
     string elsestate = "";
-   
+    
     content >> if_dummy >> parenthesis >> if_var;
     for (j = i + 1; j < lines.size(); j++) {
         stringstream string2(lines.at(j));
         string next;
         string2 >> next;
-       // module.at(i).setline(next);//read each line in if statement
+        // module.at(i).setline(next);//read each line in if statement
         if (next.compare("}") == 0) {//find the end of this if statement
             i = j + 1;//move to the next
             if (lines.size() > i) {
@@ -114,7 +116,7 @@ int Common::ifparser(int i,vector<string> lines,  vector<Common> module)
             {
                 //need to figure out a way to
                 //add the contents inside if statement to module vector
-
+                
             }
         }
     }
@@ -146,205 +148,186 @@ int Common::ifparser(int i,vector<string> lines,  vector<Common> module)
     //test[1] = to_parse.find("1");
     if ((to_parse.find("+") != string::npos))         //parse inc
     {
-
-        mod_vars[mod_varsNum] = new char[to_parse.find("=")];              //output variable
+//        mod_vars[mod_varsNum] = new char[to_parse.find("=")];
+//        to_parse.copy(mod_vars[mod_varsNum], to_parse.find("="));
+//        mod_vars[mod_varsNum +1] = new char[to_parse.find("+") - to_parse.find("=")];
+//        to_parse.copy(mod_vars[mod_varsNum +1], (to_parse.find("+") - to_parse.find("=") - 1),
+//                      (to_parse.find("=") + 1));
+	
+        mod_vars[mod_varsNum] = new char[to_parse.find("=") + 1];                             //output variable
         to_parse.copy(mod_vars[mod_varsNum], to_parse.find("="));
+	    mod_vars[mod_varsNum][to_parse.find("=")] = '\0';
         mod_vars[mod_varsNum +1] = new char[to_parse.find("+") - to_parse.find("=")];        //first input variable
         to_parse.copy(mod_vars[mod_varsNum +1], (to_parse.find("+") - to_parse.find("=") - 1),
                       (to_parse.find("=") + 1));
+        mod_vars[mod_varsNum + 1][to_parse.find("+") - to_parse.find("=")] = '\0';
         mod_vars[mod_varsNum + 2] = new char[to_parse.length() - to_parse.find("+")];        //second input variable
         to_parse.copy(mod_vars[mod_varsNum + 2], (to_parse.length() - to_parse.find("+") - 1),
                       (to_parse.find("+") + 1));
+	    mod_vars[mod_varsNum + 2][to_parse.length() - to_parse.find("+") - 1] = '\0';
         
         
         string one=string(mod_vars[mod_varsNum + 2]);
-        one.erase(remove(one.begin(), one.end(), ' '),one.end());//get the second input,if it's 1, it's INC operation
+        one.erase(remove(one.begin(), one.end(), ' '),one.end());
         if (one=="1")         //parse inc
         {
-     
-        temp=string(mod_vars[mod_varsNum]);//output in this operation
-        temp.erase(remove(temp.begin(), temp.end(), ' '),temp.end());
-        setopout(temp);//set ouput for this module
-        temp=string(mod_vars[mod_varsNum+1]);//first input in this operation
-        temp.erase(remove(temp.begin(), temp.end(), ' '),
+        /*this->op_input=mod_varsNum+1;
+         this->op_output=mod_varsNum;
+         if(not found in var,error code101)
+         */
+            temp=string(mod_vars[mod_varsNum]);
+            temp.erase(remove(temp.begin(), temp.end(), ' '),temp.end());
+            setopout(temp);
+            temp=string(mod_vars[mod_varsNum+1]);
+            temp.erase(remove(temp.begin(), temp.end(), ' '),
                    temp.end());
-        this->op_in.push_back(temp);//set input for this module
-        for(i=0;i<var.size();i++){
-            if(op_out==var.at(i).getName()){//find the output variable
-                if(var.at(i).getdummy()=="output"||var.at(i).getdummy()=="wire"||var.at(i).getdummy()=="reg"){
-                    setdatawidth(var.at(i).getBitWidth());
-                    x=i;
+            this->op_in.push_back(temp);
+            for(i=0;i<var.size();i++){
+                if(op_out==var.at(i).getName()){
+                    if(var.at(i).getdummy()=="output"||var.at(i).getdummy()=="wire"||var.at(i).getdummy()=="reg"){
+                            setdatawidth(var.at(i).getBitWidth());
+                        x=i;
+                    }
+                }
+                if(op_in.at(0)==(var.at(i).getName())){
+                    if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="wire"){
+                        y=i;
+                    }
                 }
             }
-            if(op_in.at(0)==(var.at(i).getName())){//find the first input variable
-                if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="wire"){
-                    y=i;
-                }}}
-        if(var.at(x).getSigned()=="signed"||var.at(y).getSigned()=="signed"){//module is signed if either the input or output is signed
-            setsign("signed");//set sign for this module
-            sign="S";
+            
+            //make string
+     
+            this->Common::INC_moduleNum++;
+            mod_varsNum += 2;
+            setoperation("INC");
         }
-        //make string
-        
-//        converted = sign+string("INC #(.DATAWIDTH(") +  to_string(this->datawidth) +
-//        string(")) INC_") +  to_string(this->Common::INC_moduleNum) +
-//        string("(") + string(mod_vars[mod_varsNum + 1]) + string(", ") +
-//        string(mod_vars[mod_varsNum]) + string(");");
-        this->Common::INC_moduleNum++;
-        mod_varsNum += 2;
-        setoperation("INC");
-        }
-        else{//if the second input is not 1, it's an ADD
+        else {
             mod_vars[mod_varsNum] = new char[to_parse.find("=")];                             //output variable
             to_parse.copy(mod_vars[mod_varsNum], to_parse.find("="));
-            mod_vars[mod_varsNum +1] = new char[to_parse.find("+") - to_parse.find("=")];        //first input variable
+            mod_vars[mod_varsNum][to_parse.find("=")] = '\0';
+            mod_vars[mod_varsNum +1] = new char[to_parse.find("+") - to_parse.find("=")];        //first input variable            
             to_parse.copy(mod_vars[mod_varsNum +1], (to_parse.find("+") - to_parse.find("=") - 1),
-                          (to_parse.find("=") + 1));
-            mod_vars[mod_varsNum + 2] = new char[to_parse.length() - to_parse.find("+")];        //second input variable
+                      (to_parse.find("=") + 1));
+            mod_vars[mod_varsNum + 1][to_parse.find("+") - to_parse.find("=") - 1] = '\0';
+            mod_vars[mod_varsNum + 2] = new char[to_parse.length() - to_parse.find("+")];        //second input variable            
             to_parse.copy(mod_vars[mod_varsNum + 2], (to_parse.length() - to_parse.find("+") - 1),
-                          (to_parse.find("+") + 1));
+                      (to_parse.find("+") + 1));
+            mod_vars[mod_varsNum + 2][to_parse.length() - to_parse.find("+") - 1] = '\0';
             
-            getfromvar(var,mod_vars,mod_varsNum);//determine sign and bitwidth
+            getfromvar(var,mod_vars,mod_varsNum);
             sign=(this->getSigned()=="signed")? "S":"";
             //make string
-            converted = sign+string("ADD #(.DATAWIDTH(") + std::to_string(this->datawidth) +
-            string(")) ADD_") + std::to_string(this->Common::ADD_moduleNum) +
-            string("(") + string(mod_vars[mod_varsNum + 1]) + string(", ") +
-            string(mod_vars[mod_varsNum + 2]) + string(", ") + string(mod_vars[mod_varsNum]) +
-            string(");");
+            
             this->Common::ADD_moduleNum++;
-            mod_varsNum += 3;
+            mod_varsNum += 3;            
             setoperation("ADD");
         }
     }
-    else if ((to_parse.find("-") != string::npos) && (to_parse.find("1") != string::npos))                //parse DEC,same procedure as INC
+    else if ((to_parse.find("-") != string::npos))                //parse DEC
     {
-        mod_vars[mod_varsNum] = new char[to_parse.find("=")];    //output variable
+        mod_vars[mod_varsNum] = new char[to_parse.find("=")];                         //output variable
         to_parse.copy(mod_vars[mod_varsNum], to_parse.find("="));
-        mod_vars[mod_varsNum +1] = new char[to_parse.find("-") - to_parse.find("=")];    //input variable
+        mod_vars[mod_varsNum][to_parse.find("=")] = '\0';
+        mod_vars[mod_varsNum +1] = new char[to_parse.find("-") - to_parse.find("=") - 1];    //input variable
         to_parse.copy(mod_vars[mod_varsNum +1], (to_parse.find("-") - to_parse.find("=") - 1),
                       (to_parse.find("=") + 1));
-        temp=string(mod_vars[mod_varsNum]);
-        temp.erase(remove(temp.begin(), temp.end(), ' '),temp.end());
-        setopout(temp);
-        temp=string(mod_vars[mod_varsNum+1]);
-        temp.erase(remove(temp.begin(), temp.end(), ' '),
+        mod_vars[mod_varsNum + 1][to_parse.find("-") - to_parse.find("=") - 1] = '\0';
+        mod_vars[mod_varsNum + 2] = new char[to_parse.length() - to_parse.find("-")];       //second input variable
+        to_parse.copy(mod_vars[mod_varsNum + 2], (to_parse.length() - to_parse.find("+") - 1),
+                      (to_parse.find("+") + 1));
+        mod_vars[mod_varsNum + 2][to_parse.length() - to_parse.find("+") - 1] = '\0';
+
+        string one=string(mod_vars[mod_varsNum + 2]);
+        one.erase(remove(one.begin(), one.end(), ' '),one.end());
+        if (one=="1")         //parse dec
+        {
+            temp=string(mod_vars[mod_varsNum]);
+            temp.erase(remove(temp.begin(), temp.end(), ' '),temp.end());
+            setopout(temp);
+            temp=string(mod_vars[mod_varsNum+1]);
+            temp.erase(remove(temp.begin(), temp.end(), ' '),
                    temp.end());
-        this->op_in.push_back(temp);
-        for(i=0;i<var.size();i++){
-            if(op_out==var.at(i).getName()){
-                if(var.at(i).getdummy()=="output"||var.at(i).getdummy()=="wire"||var.at(i).getdummy()=="reg"){
-                    setdatawidth(var.at(i).getBitWidth());
-                    x=i;
+            this->op_in.push_back(temp);
+            for(i=0;i<var.size();i++){
+                if(op_out==var.at(i).getName()){
+                    if(var.at(i).getdummy()=="output"||var.at(i).getdummy()=="wire"||var.at(i).getdummy()=="reg"){
+                            setdatawidth(var.at(i).getBitWidth());
+                        x=i;
+                    }
+                }
+                if(op_in.at(0)==(var.at(i).getName())){
+                    if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="wire"){
+                            y=i;
+                    }
                 }
             }
-            if(op_in.at(0)==(var.at(i).getName())){
-                if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="wire"){
-                    y=i;
-                }}}
-        if(var.at(x).getSigned()=="signed"||var.at(y).getSigned()=="signed"){
-            setsign("signed");
-            sign="S";
+           
+            mod_varsNum += 2;
+            setoperation("DEC");
         }
-        //make string
-        converted = sign+string("DEC #(.DATAWIDTH(") + std::to_string(this->datawidth) +
-        string(")) DEC_") + std::to_string(this->Common::DEC_moduleNum) +
-        string("(") + string(mod_vars[mod_varsNum + 1]) + string(", ") +
-        string(mod_vars[mod_varsNum]) + string(");");
-        this->Common::DEC_moduleNum++;
-        mod_varsNum += 2;
-        setoperation("DEC");
+        else {
+            mod_vars[mod_varsNum] = new char[to_parse.find("=")];                             //output variable
+            to_parse.copy(mod_vars[mod_varsNum], to_parse.find("="));
+            mod_vars[mod_varsNum][to_parse.find("=")] = '\0';
+            mod_vars[mod_varsNum +1] = new char[to_parse.find("-") - to_parse.find("=")];        //first input variable            
+            to_parse.copy(mod_vars[mod_varsNum +1], (to_parse.find("-") - to_parse.find("=") - 1),
+                      (to_parse.find("=") + 1));
+            mod_vars[mod_varsNum + 1][to_parse.find("-") - to_parse.find("=") - 1] = '\0';
+            mod_vars[mod_varsNum + 2] = new char[to_parse.length() - to_parse.find("-")];        //second input variable            
+            to_parse.copy(mod_vars[mod_varsNum + 2], (to_parse.length() - to_parse.find("-") - 1),
+                      (to_parse.find("-") + 1));
+            mod_vars[mod_varsNum + 2][to_parse.length() - to_parse.find("-") - 1] = '\0';
+            
+            getfromvar(var,mod_vars,mod_varsNum);
+            
+            this->Common::ADD_moduleNum++;
+            mod_varsNum += 3;            
+            setoperation("SUB");
+        }
     }
     else if ((to_parse.find("*") != string::npos))
     {
         mod_vars[mod_varsNum] = new char[to_parse.find("=")];                             //output variable
         to_parse.copy(mod_vars[mod_varsNum], to_parse.find("="));
+        mod_vars[mod_varsNum][to_parse.find("=")] = '\0';
         mod_vars[mod_varsNum +1] = new char[to_parse.find("*") - to_parse.find("=")];        //first input variable
         to_parse.copy(mod_vars[mod_varsNum +1], (to_parse.find("*") - to_parse.find("=") - 1),
                       (to_parse.find("=") + 1));
+        mod_vars[mod_varsNum + 1][to_parse.find("*") - to_parse.find("=") - 1] = '\0';
         mod_vars[mod_varsNum + 2] = new char[to_parse.length() - to_parse.find("*")];        //second input variable
         to_parse.copy(mod_vars[mod_varsNum + 2], (to_parse.length() - to_parse.find("*") - 1),
                       (to_parse.find("*") + 1));
+        mod_vars[mod_varsNum + 2][to_parse.length() - to_parse.find("*") - 1] = '\0';
         
-        getfromvar(var,mod_vars,mod_varsNum);//determine sign and bitwidth
-        sign=(this->getSigned()=="signed")? "S":"";
-        //make string
-        converted = sign+string("MUL #(.DATAWIDTH(") + std::to_string(this->datawidth) +
-        string(")) MUL_") + std::to_string(this->Common::MUL_moduleNum) +
-        string("(") + string(mod_vars[mod_varsNum + 1]) + string(", ") +
-        string(mod_vars[mod_varsNum + 2]) + string(", ") + string(mod_vars[mod_varsNum]) +
-        string(");");
+        getfromvar(var,mod_vars,mod_varsNum);
+        
         this->Common::MUL_moduleNum++;
         mod_varsNum += 3;
         setoperation("MUL");
     }
-//    else if ((to_parse.find("+") != string::npos))
-//    {
-//        mod_vars[mod_varsNum] = new char[to_parse.find("=")];                             //output variable
-//        to_parse.copy(mod_vars[mod_varsNum], to_parse.find("="));
-//        mod_vars[mod_varsNum +1] = new char[to_parse.find("+") - to_parse.find("=")];        //first input variable
-//        to_parse.copy(mod_vars[mod_varsNum +1], (to_parse.find("+") - to_parse.find("=") - 1),
-//                      (to_parse.find("=") + 1));
-//        mod_vars[mod_varsNum + 2] = new char[to_parse.length() - to_parse.find("+")];        //second input variable
-//        to_parse.copy(mod_vars[mod_varsNum + 2], (to_parse.length() - to_parse.find("+") - 1),
-//                      (to_parse.find("+") + 1));
-//
-//        getfromvar(var,mod_vars,mod_varsNum);
-//        sign=(this->getSigned()=="signed")? "S":"";
-//        //make string
-//        converted = sign+string("ADD #(.DATAWIDTH(") + std::to_string(this->datawidth) +
-//        string(")) ADD_") + std::to_string(this->Common::ADD_moduleNum) +
-//        string("(") + string(mod_vars[mod_varsNum + 1]) + string(", ") +
-//        string(mod_vars[mod_varsNum + 2]) + string(", ") + string(mod_vars[mod_varsNum]) +
-//        string(");");
-//        this->Common::ADD_moduleNum++;
-//        mod_varsNum += 3;
-//        setoperation("ADD");
-//    }
-    else if ((to_parse.find("-") != string::npos))
-    {
-        mod_vars[mod_varsNum] = new char[to_parse.find("=")];                             //output variable
-        to_parse.copy(mod_vars[mod_varsNum], to_parse.find("="));
-        mod_vars[mod_varsNum +1] = new char[to_parse.find("-") - to_parse.find("=")];        //first input variable
-        to_parse.copy(mod_vars[mod_varsNum +1], (to_parse.find("-") - to_parse.find("=") - 1),
-                      (to_parse.find("=") + 1));
-        mod_vars[mod_varsNum + 2] = new char[to_parse.length() - to_parse.find("-")];        //second input variable
-        to_parse.copy(mod_vars[mod_varsNum + 2], (to_parse.length() - to_parse.find("-") - 1),
-                      (to_parse.find("-") + 1));
-        
-        getfromvar(var,mod_vars,mod_varsNum);
-        sign=(this->getSigned()=="signed")? "S":"";
-        //make string
-        converted = sign+string("SUB #(.DATAWIDTH(") + std::to_string(this->datawidth) +
-        string(")) SUB_") + std::to_string(this->Common::SUB_moduleNum) +
-        string("(") + string(mod_vars[mod_varsNum + 1]) + string(", ") +
-        string(mod_vars[mod_varsNum + 2]) + string(", ") + string(mod_vars[mod_varsNum]) +
-        string(");");
-        this->Common::SUB_moduleNum++;
-        mod_varsNum += 3;
-        setoperation("SUB");
-    }
+
     else if ((to_parse.find(">>") != string::npos))
     {
         mod_vars[mod_varsNum] = new char[to_parse.find("=")];                         //output variable
         to_parse.copy(mod_vars[mod_varsNum], to_parse.find("="));
-        mod_vars[mod_varsNum +1] = new char[to_parse.find(">>") - to_parse.find("=")];       //first input variable
+        mod_vars[mod_varsNum][to_parse.find("=")] = '\0';
+        mod_vars[mod_varsNum +1] = new char[to_parse.find(">>") - to_parse.find("=") - 1];       //first input variable
         to_parse.copy(mod_vars[mod_varsNum +1], (to_parse.find(">>") - to_parse.find("=") - 1),
                       (to_parse.find("=") + 1));
-        mod_vars[mod_varsNum + 2] = new char[to_parse.length() - to_parse.find(">>")];       //second input variable
-        to_parse.copy(mod_vars[mod_varsNum + 2], (to_parse.length() - to_parse.find(">>") - 2),
+        mod_vars[mod_varsNum + 1][to_parse.find(">>") - to_parse.find("=") - 2] = '\0';
+        mod_vars[mod_varsNum + 2] = new char[to_parse.length() - to_parse.find(">>") - 1];       //second input variable
+        to_parse.copy(mod_vars[mod_varsNum + 2], (to_parse.length() - to_parse.find(">>") - 1),
                       (to_parse.find(">>") + 2));
+        mod_vars[mod_varsNum + 2][to_parse.length() - to_parse.find(">>") - 2] = '\0';
+
         getfromvar(var,mod_vars,mod_varsNum);
         sign=(this->getSigned()=="signed")? "S":"";
         //make string
         temp=string(mod_vars[mod_varsNum + 1]);
-        temp.erase(remove(temp.begin(), temp.end(), ' '), temp.end());//remove white space
+        temp.erase(remove(temp.begin(), temp.end(), ' '), temp.end());
         
-        converted = sign+string("SHR #(.DATAWIDTH(") + std::to_string(this->datawidth) +
-        string(")) SHR_") + std::to_string(this->Common::SHR_moduleNum) +
-        string("(") + temp + string(", ") +
-        string(mod_vars[mod_varsNum + 2]) + string(", ") + string(mod_vars[mod_varsNum]) +
-        string(");");
+        
         this->Common::SHR_moduleNum++;
         mod_varsNum += 3;
         setoperation("SHR");
@@ -353,20 +336,20 @@ int Common::ifparser(int i,vector<string> lines,  vector<Common> module)
     {
         mod_vars[mod_varsNum] = new char[to_parse.find("=")];                                 //output variable
         to_parse.copy(mod_vars[mod_varsNum], to_parse.find("="));
-        mod_vars[mod_varsNum +1] = new char[to_parse.find("<<") - to_parse.find("=")];           //first input variable
+        mod_vars[mod_varsNum][to_parse.find("=")] = '\0';
+        mod_vars[mod_varsNum +1] = new char[to_parse.find("<<") - to_parse.find("=") - 1];           //first input variable
         to_parse.copy(mod_vars[mod_varsNum +1], (to_parse.find("<<") - to_parse.find("=") - 1),
                       (to_parse.find("=") + 1));
-        mod_vars[mod_varsNum + 2] = new char[to_parse.length() - to_parse.find("<<")];       //second input variable
-        to_parse.copy(mod_vars[mod_varsNum + 2], (to_parse.length() - to_parse.find("<<") - 2),
+        mod_vars[mod_varsNum + 1][to_parse.find("<<") - to_parse.find("=") - 2] = '\0';
+        mod_vars[mod_varsNum + 2] = new char[to_parse.length() - to_parse.find("<<") - 1];       //second input variable
+        to_parse.copy(mod_vars[mod_varsNum + 2], (to_parse.length() - to_parse.find("<<") - 1),
                       (to_parse.find("<<") + 2));
+        mod_vars[mod_varsNum + 2][to_parse.length() - to_parse.find("<<") - 2] = '\0';
+
         getfromvar(var,mod_vars,mod_varsNum);
         sign=(this->getSigned()=="signed")? "S":"";
         //make string
-        converted = sign+string("SHL #(.DATAWIDTH(") + std::to_string(this->datawidth) +
-        string(")) SHL_") + std::to_string(this->Common::SHL_moduleNum) +
-        string("(") + string(mod_vars[mod_varsNum + 1]) + string(", ") +
-        string(mod_vars[mod_varsNum + 2]) + string(", ") + string(mod_vars[mod_varsNum]) +
-        string(");");
+        
         this->Common::SHL_moduleNum++;
         mod_varsNum += 3;
         setoperation("SHL");
@@ -375,65 +358,18 @@ int Common::ifparser(int i,vector<string> lines,  vector<Common> module)
     {
         mod_vars[mod_varsNum] = new char[to_parse.find("=")];                         //output variable
         to_parse.copy(mod_vars[mod_varsNum], to_parse.find("="));
-        mod_vars[mod_varsNum +1] = new char[to_parse.find(">") - to_parse.find("=")];    //first input variable
+        mod_vars[mod_varsNum][to_parse.find("=")] = '\0';
+        mod_vars[mod_varsNum +1] = new char[to_parse.find(">") - to_parse.find("=") - 1];    //first input variable
         to_parse.copy(mod_vars[mod_varsNum +1], (to_parse.find(">") - to_parse.find("=") - 1),
                       (to_parse.find("=") + 1));
+        mod_vars[mod_varsNum + 1][to_parse.find(">") - to_parse.find("=")] = '\0';
         mod_vars[mod_varsNum + 2] = new char[to_parse.length() - to_parse.find(">")];       //second input variable
         to_parse.copy(mod_vars[mod_varsNum + 2], (to_parse.length() - to_parse.find(">") - 1),
                       (to_parse.find(">") + 1));
+        mod_vars[mod_varsNum + 2][to_parse.length() - to_parse.find(">") - 1] = '\0';
 
         temp=string(mod_vars[mod_varsNum]);
         temp.erase(remove(temp.begin(), temp.end(), ' '),temp.end());
-        setopout(temp);//output varibale
-        temp=string(mod_vars[mod_varsNum+1]);
-        temp.erase(remove(temp.begin(), temp.end(),' '),
-                   temp.end());
-        this->op_in.push_back(temp);//input 1
-        temp=string(mod_vars[mod_varsNum+2]);
-        temp.erase(remove(temp.begin(), temp.end(),' '),
-                   temp.end());
-        this->op_in.push_back(temp);//input 2
-        for(i=0;i<var.size();i++){
-            
-            if(op_in.at(0)==(var.at(i).getName())){//input 1
-                if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="wire"){
-                       width1=var.at(i).getBitWidth();
-                    x=i;
-                }}
-            if(op_in.at(1)==(var.at(i).getName())){//input 2
-                if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="wire"){
-                    y=i;
-                     width2=var.at(i).getBitWidth();
-                }}
-        }  this->datawidth=max(width1,width2);//datawidth of COMP depends on the largest input width
-        if(var.at(x).getSigned()=="signed"||var.at(y).getSigned()=="signed"){
-            setsign("signed");
-            sign="S";
-        }
-        
-        //make string
-        converted = sign+string("COMP #(.DATAWIDTH(") +  to_string(this->datawidth) +
-        string(")) COMP_GT_") + std::to_string(this->Common::COMP_GT_moduleNum) +
-        string("(") + string(mod_vars[mod_varsNum + 1]) + string(", ") +
-        string(mod_vars[mod_varsNum + 2]) + string(", ") + string(mod_vars[mod_varsNum]) +
-        string(");");
-        this->Common::COMP_GT_moduleNum++;
-        mod_varsNum += 3;
-        setoperation("COMP");
-    }
-    else if ((to_parse.find("<") != string::npos))
-    {
-        mod_vars[mod_varsNum] = new char[to_parse.find("=")];                         //output variable
-        to_parse.copy(mod_vars[mod_varsNum], to_parse.find("="));
-        mod_vars[mod_varsNum +1] = new char[to_parse.find("<") - to_parse.find("=")];    //first input variable
-        to_parse.copy(mod_vars[mod_varsNum +1], (to_parse.find("<") - to_parse.find("=") - 1),
-                      (to_parse.find("=") + 1));
-        mod_vars[mod_varsNum + 2] = new char[to_parse.length() - to_parse.find(">")];       //second input variable
-        to_parse.copy(mod_vars[mod_varsNum + 2], (to_parse.length() - to_parse.find("<") - 1),
-                      (to_parse.find("<") + 1));
-        
-        temp=string(mod_vars[mod_varsNum]);
-        temp.erase(remove(temp.begin(), temp.end(),' '),temp.end());
         setopout(temp);
         temp=string(mod_vars[mod_varsNum+1]);
         temp.erase(remove(temp.begin(), temp.end(),' '),
@@ -447,25 +383,47 @@ int Common::ifparser(int i,vector<string> lines,  vector<Common> module)
             
             if(op_in.at(0)==(var.at(i).getName())){
                 if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="wire"){
-                    width1=var.at(i).getBitWidth();
+                       width1=var.at(i).getBitWidth();
                     x=i;
                 }}
             if(op_in.at(1)==(var.at(i).getName())){
                 if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="wire"){
                     y=i;
-                    width2=var.at(i).getBitWidth();
+                     width2=var.at(i).getBitWidth();
                 }}
         }  this->datawidth=max(width1,width2);
-        if(var.at(x).getSigned()=="signed"||var.at(y).getSigned()=="signed"){
-            setsign("signed");
-            sign="S";
-        }
-        //make string
-        converted = sign+string("COMP #(.DATAWIDTH(") +  to_string(this->datawidth) +
-        string(")) COMP_LT_") + std::to_string(this->Common::COMP_LT_moduleNum) +
-        string("(") + string(mod_vars[mod_varsNum + 1]) + string(", ") +
-        string(mod_vars[mod_varsNum + 2]) + string(", ") + string(mod_vars[mod_varsNum]) +
-        string(");");
+        
+        this->Common::COMP_GT_moduleNum++;
+        mod_varsNum += 3;
+        setoperation("COMP");
+    }
+    else if ((to_parse.find("<") != string::npos))
+    {
+        mod_vars[mod_varsNum] = new char[to_parse.find("=")];                         //output variable
+        to_parse.copy(mod_vars[mod_varsNum], to_parse.find("="));
+        mod_vars[mod_varsNum][to_parse.find("=")] = '\0';
+        mod_vars[mod_varsNum +1] = new char[to_parse.find("<") - to_parse.find("=")];    //first input variable
+        to_parse.copy(mod_vars[mod_varsNum +1], (to_parse.find("<") - to_parse.find("=") - 1),
+                      (to_parse.find("=") + 1));
+        mod_vars[mod_varsNum + 1][to_parse.find("<") - to_parse.find("=") - 1] = '\0';
+        mod_vars[mod_varsNum + 2] = new char[to_parse.length() - to_parse.find(">")];       //second input variable
+        to_parse.copy(mod_vars[mod_varsNum + 2], (to_parse.length() - to_parse.find("<") - 1),
+                      (to_parse.find("<") + 1));
+        mod_vars[mod_varsNum + 2][to_parse.length() - to_parse.find("<") - 1] = '\0';
+        
+        temp=string(mod_vars[mod_varsNum]);
+        temp.erase(remove(temp.begin(), temp.end(),' '),temp.end());
+        setopout(temp);
+        temp=string(mod_vars[mod_varsNum+1]);
+        temp.erase(remove(temp.begin(), temp.end(),' '),
+                   temp.end());
+        this->op_in.push_back(temp);
+        temp=string(mod_vars[mod_varsNum+2]);
+        temp.erase(remove(temp.begin(), temp.end(),' '),
+                   temp.end());
+        this->op_in.push_back(temp);
+        
+       
         this->Common::COMP_LT_moduleNum++;
         mod_varsNum += 3;
         setoperation("COMP");
@@ -474,12 +432,15 @@ int Common::ifparser(int i,vector<string> lines,  vector<Common> module)
     {
         mod_vars[mod_varsNum] = new char[to_parse.find("=")];                         //output variable
         to_parse.copy(mod_vars[mod_varsNum], to_parse.find("="));
+        mod_vars[mod_varsNum][to_parse.find("=")] = '\0';
         mod_vars[mod_varsNum +1] = new char[to_parse.find("==") - to_parse.find("=")];    //first input variable
         to_parse.copy(mod_vars[mod_varsNum +1], (to_parse.find("==") - to_parse.find("=") - 1),
                       (to_parse.find("=") + 1));
+        mod_vars[mod_varsNum + 1][to_parse.find("==") - to_parse.find("=") - 1] = '\0';
         mod_vars[mod_varsNum + 2] = new char[to_parse.length() - to_parse.find("==")];       //second input variable
-        to_parse.copy(mod_vars[mod_varsNum + 2], (to_parse.length() - to_parse.find("==") -2),
+        to_parse.copy(mod_vars[mod_varsNum + 2], (to_parse.length() - to_parse.find("==") - 2),
                       (to_parse.find("==") + 2));
+        mod_vars[mod_varsNum + 2][to_parse.length() - to_parse.find("==") - 2] = '\0';
         
         temp=string(mod_vars[mod_varsNum]);
         temp.erase(remove(temp.begin(), temp.end(),' '),temp.end());
@@ -492,29 +453,7 @@ int Common::ifparser(int i,vector<string> lines,  vector<Common> module)
         temp.erase(remove(temp.begin(), temp.end(), ' '),
                    temp.end());
         this->op_in.push_back(temp);
-        for(i=0;i<var.size();i++){
-            
-            if(op_in.at(0)==(var.at(i).getName())){
-                if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="wire"){
-                    width1=var.at(i).getBitWidth();
-                    x=i;
-                }}
-            if(op_in.at(1)==(var.at(i).getName())){
-                if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="wire"){
-                    y=i;
-                    width2=var.at(i).getBitWidth();
-                }}
-        }  this->datawidth=max(width1,width2);
-        if(var.at(x).getSigned()=="signed"||var.at(y).getSigned()=="signed"){
-            setsign("signed");
-            sign="S";
-        }
-        //make string
-        converted = sign+string("COMP #(.DATAWIDTH(") +  to_string(this->datawidth) +
-        string(")) COMP_EQ_") + std::to_string(this->Common::COMP_EQ_moduleNum) +
-        string("(") + string(mod_vars[mod_varsNum + 1]) + string(", ") +
-        string(mod_vars[mod_varsNum + 2]) + string(", ") + string(mod_vars[mod_varsNum]) +
-        string(");");
+        
         this->Common::COMP_EQ_moduleNum++;
         mod_varsNum += 3;
         setoperation("COMP");
@@ -523,14 +462,18 @@ int Common::ifparser(int i,vector<string> lines,  vector<Common> module)
     {
         mod_vars[mod_varsNum] = new char[to_parse.find("=")];                         //output variable
         to_parse.copy(mod_vars[mod_varsNum], to_parse.find("="));
+        mod_vars[mod_varsNum][to_parse.find("=")] = '\0';
         mod_vars[mod_varsNum +1] = new char[to_parse.find("?") - to_parse.find("=")];       //first input variable
         to_parse.copy(mod_vars[mod_varsNum +1], (to_parse.find("?") - to_parse.find("=") - 1),
                       (to_parse.find("=") + 1));
+        mod_vars[mod_varsNum + 1][to_parse.find("?") - to_parse.find("=") - 1] = '\0';
         mod_vars[mod_varsNum + 2] = new char[to_parse.find(":") - to_parse.find("?")];       //second input variable
         to_parse.copy(mod_vars[mod_varsNum + 2], (to_parse.find(":") - to_parse.find("?") - 1),
                       (to_parse.find("?") + 1));
+        mod_vars[mod_varsNum + 2][to_parse.find(":") - to_parse.find("?") - 1] = '\0';
         mod_vars[mod_varsNum + 3] = new char[to_parse.length() - to_parse.find(":")];       //third input variable
-        to_parse.copy(mod_vars[mod_varsNum + 3], (to_parse.length() - to_parse.find(":")), to_parse.find(":") + 1);
+        to_parse.copy(mod_vars[mod_varsNum + 3], (to_parse.length() - to_parse.find(":") - 1), to_parse.find(":") + 1);
+        mod_vars[mod_varsNum + 3][to_parse.length() - to_parse.find(":") - 1] = '\0';
         
         temp=string(mod_vars[mod_varsNum]);
         temp.erase(remove(temp.begin(), temp.end(), ' '),temp.end());
@@ -547,36 +490,7 @@ int Common::ifparser(int i,vector<string> lines,  vector<Common> module)
         temp.erase(remove(temp.begin(), temp.end(),' '),
                    temp.end());
         this->op_in.push_back(temp);
-        for(i=0;i<var.size();i++){
-            if(op_out==var.at(i).getName()){
-                if(var.at(i).getdummy()=="output"||var.at(i).getdummy()=="wire"){
-                    setdatawidth(var.at(i).getBitWidth());
-                    x=i;
-                }}
-            if(op_in.at(0)==(var.at(i).getName())){
-                if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="wire"){
-                    z=i;
-                }}
-            if(op_in.at(1)==(var.at(i).getName())){
-                if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="wire"){
-                    y=i;
-                }}
-            if(op_in.at(2)==(var.at(i).getName())){
-                if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="wire"){
-                    w=i;
-                    
-                }}
-      }  //this->datawidth=max(width1,width2);
-        if(var.at(x).getSigned()=="signed"||var.at(y).getSigned()=="signed"||var.at(z).getSigned()=="signed"||var.at(w).getSigned()=="signed"){
-            setsign("signed");
-            sign="S";
-        }
-        //make string
-        converted = sign+string("MUX2X1 #(.DATAWIDTH(") + std::to_string(this->datawidth) +
-        string(")) MUX2X1_") + std::to_string(this->Common::MUX2X1_moduleNum) +
-        string("(") + string(mod_vars[mod_varsNum + 1]) + string(", ") +
-        string(mod_vars[mod_varsNum + 2]) + string(", ") + string(mod_vars[mod_varsNum + 3]) +
-        string(", ") + string(mod_vars[mod_varsNum]) + string(");");
+        
         this->Common::MUX2X1_moduleNum++;
         mod_varsNum += 3;
         setoperation("MUX");
@@ -585,21 +499,20 @@ int Common::ifparser(int i,vector<string> lines,  vector<Common> module)
     {
         mod_vars[mod_varsNum] = new char[to_parse.find("=")];                         //output variable
         to_parse.copy(mod_vars[mod_varsNum], to_parse.find("="));
+        mod_vars[mod_varsNum][to_parse.find("=")] = '\0';
         mod_vars[mod_varsNum +1] = new char[to_parse.find("/") - to_parse.find("=")];    //first input variable
         to_parse.copy(mod_vars[mod_varsNum +1], (to_parse.find("/") - to_parse.find("=") - 1),
                       (to_parse.find("=") + 1));
+        mod_vars[mod_varsNum + 1][to_parse.find("/") - to_parse.find("=") - 1] = '\0';
         mod_vars[mod_varsNum + 2] = new char[to_parse.length() - to_parse.find("/")];       //second input variable
         to_parse.copy(mod_vars[mod_varsNum + 2], (to_parse.length() - to_parse.find("/") - 1),
                       (to_parse.find("/") + 1));
+        mod_vars[mod_varsNum + 2][to_parse.length() - to_parse.find("/") - 1] = '\0';
         
         getfromvar(var,mod_vars,mod_varsNum);
         sign=(this->getSigned()=="signed")? "S":"";
         //make string
-        converted = sign+string("DIV #(.DATAWIDTH(") + std::to_string(this->datawidth) +
-        string(")) DIV_") + std::to_string(this->Common::DIV_moduleNum) +
-        string("(") + string(mod_vars[mod_varsNum + 1]) + string(", ") +
-        string(mod_vars[mod_varsNum + 2]) + string(", ") + string(mod_vars[mod_varsNum]) +
-        string(");");
+       
         this->Common::DIV_moduleNum++;
         mod_varsNum += 3;
         setoperation("DIV");
@@ -608,23 +521,22 @@ int Common::ifparser(int i,vector<string> lines,  vector<Common> module)
     {
         mod_vars[mod_varsNum] = new char[to_parse.find("=")];                         //output variable
         to_parse.copy(mod_vars[mod_varsNum], to_parse.find("="));
+        mod_vars[mod_varsNum][to_parse.find("=")] = '\0';
         mod_vars[mod_varsNum +1] = new char[to_parse.find("%") - to_parse.find("=")];    //first input variable
         to_parse.copy(mod_vars[mod_varsNum +1], (to_parse.find("%") - to_parse.find("=") - 1),
                       (to_parse.find("=") + 1));
+        mod_vars[mod_varsNum + 1][to_parse.find("%") - to_parse.find("=") - 1] = '\0';
         mod_vars[mod_varsNum + 2] = new char[to_parse.length() - to_parse.find("%")];       //second input variable
         to_parse.copy(mod_vars[mod_varsNum + 2], (to_parse.length() - to_parse.find("%") - 1),
                       (to_parse.find("%") + 1));
+        mod_vars[mod_varsNum + 2][to_parse.length() - to_parse.find("%") - 1] = '\0';
         
         
         getfromvar(var,mod_vars,mod_varsNum);
         sign=(this->getSigned()=="signed")? "S":"";
        
         //make string
-        converted = sign+string("MOD #(.DATAWIDTH(") + std::to_string(this->datawidth) +
-        string(")) MOD_") + std::to_string(this->Common::MOD_moduleNum) +
-        string("(") + string(mod_vars[mod_varsNum + 1]) + string(", ") +
-        string(mod_vars[mod_varsNum + 2]) + string(", ") + string(mod_vars[mod_varsNum]) +
-        string(");");
+       
         this->Common::MOD_moduleNum++;
         mod_varsNum += 3;
         setoperation("MOD");
@@ -633,9 +545,11 @@ int Common::ifparser(int i,vector<string> lines,  vector<Common> module)
     {
         mod_vars[mod_varsNum] = new char[to_parse.find("=")];                         //output variable
         to_parse.copy(mod_vars[mod_varsNum], to_parse.find("="));
+        mod_vars[mod_varsNum][to_parse.find("=")] = '\0';
         mod_vars[mod_varsNum +1] = new char[to_parse.length() - to_parse.find("=")];    //input variable
         to_parse.copy(mod_vars[mod_varsNum +1], (to_parse.length() - to_parse.find("=") - 1),
                       (to_parse.find("=") + 1));
+        mod_vars[mod_varsNum + 1][to_parse.length() - to_parse.find("=") - 1] = '\0';
         
         temp=string(mod_vars[mod_varsNum]);
         temp.erase(remove(temp.begin(), temp.end(), ' '),temp.end());
@@ -643,38 +557,19 @@ int Common::ifparser(int i,vector<string> lines,  vector<Common> module)
         temp=string(mod_vars[mod_varsNum+1]);
         temp.erase(remove(temp.begin(), temp.end(), ' '),temp.end());
         this->op_in.push_back(temp);
-        for(i=0;i<var.size();i++){
-            if(op_out==var.at(i).getName()){
-                if(var.at(i).getdummy()=="output"||var.at(i).getdummy()=="wire"||var.at(i).getdummy()=="reg"){
-                    setdatawidth(var.at(i).getBitWidth());
-                    x=i;
-                }
-            }
-            if(op_in.at(0)==(var.at(i).getName())){
-            if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="wire"){
-                y=i;
-            }}}
-        if(var.at(x).getSigned()=="signed"||var.at(y).getSigned()=="signed"){
-            setsign("signed");
-            sign="S";
-        }
+        
         
         //make string
-        converted = sign+string("REG #(.DATAWIDTH(") + std::to_string(this->datawidth) +
-        string(")) REG_") + std::to_string(this->Common::REG_moduleNum) +
-        string("(") +string("clk, rst,")+ string(mod_vars[mod_varsNum + 1]) + string(", ") +
-        string(mod_vars[mod_varsNum]) + string(");");
-        this->Common::REG_moduleNum++;
+       
         mod_varsNum += 2;
         setoperation("REG");
     }
     setline(to_parse);
-    setdelay(calcpath(this->operation,this->datawidth));//get the delay from the table
+   // setdelay(calcpath(this->operation,this->datawidth));
    // op_in.clear();
 }
-
+//    return converted;
 }
-//determine sign and bitwidth of each module,according to the info from variables
 void Common::getfromvar(vector<variables> var,char* str[150],int index){
    string temp;
   int y=0,z=0;
@@ -693,61 +588,23 @@ void Common::getfromvar(vector<variables> var,char* str[150],int index){
         if(op_out==var.at(i).getName()){
             if(var.at(i).getdummy()=="output"||var.at(i).getdummy()=="wire"||var.at(i).getdummy()=="reg"){
                 setdatawidth(var.at(i).getBitWidth());
-          //datawidth of the module depends on the output variable
+           //x=int(i);
             }
         }
-        if(op_in.at(0)==(var.at(i).getName())){//input 1
+        if(op_in.at(0)==(var.at(i).getName())){
             if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="wire"||var.at(i).getdummy()=="reg"){
                 y=int(i);
             }}
-        if(op_in.at(1)==(var.at(i).getName())){//input 2
+        if(op_in.at(1)==(var.at(i).getName())){
             if(var.at(i).getdummy()=="input"||var.at(i).getdummy()=="wire"||var.at(i).getdummy()=="reg"){
                 z=int(i);
             }}
     }
     if(var.at(z).getSigned()=="signed"||var.at(y).getSigned()=="signed"){
-        setsign("signed");//either one input is signed, the module is signed
+        setsign("signed");
         //sign="S";
     }
 }
-double Common::calcpath(string op,int width){
-    double latency;
-    map<string, vector<double>> m;
-    m["REG"] = { 2.616, 2.644, 2.879, 3.061, 3.602, 3.966 };
-    m["ADD"] = { 2.704, 3.713, 4.924, 5.638, 7.270, 9.566 };
-    m["SUB"] = { 3.024, 3.412, 4.890, 5.569, 7.253, 9.566 };
-    m["MUL"] = { 2.438, 3.651, 7.453, 7.811, 12.395, 15.354, };
-    m["COMP"] = { 3.031, 3.934, 5.949, 6.256, 7.264, 8.416 };
-    m["MUX"] = { 4.083, 4.115, 4.815, 5.623, 8.079, 8.766 };
-    m["SHR"] = { 3.644, 4.007, 5.178, 6.460, 8.819, 11.095 };
-    m["SHL"] = { 3.614, 3.980, 5.152, 6.549, 8.565, 11.220 };
-    m["DIV"] = { 0.619, 2.144, 15.439, 33.093, 86.312, 243.233 };
-    m["MOD"] = { 0.758, 2.149, 16.078, 35.563, 88.142, 250.583 };
-    m["INC"] = { 1.792, 2.218, 3.111, 3.471, 4.347, 6.200 };
-    m["DEC"] = { 1.792, 2.218, 3.108, 3.701, 4.685, 6.503 };
-    
-    switch (width) {
-        case 1:
-            return m[op][0];
-        case 2:
-            return m[op][1];
-        case 8:
-            return m[op][2];
-        case 16:
-            return m[op][3];
-        case 32:
-            return m[op][4];
-        case 64:
-            return m[op][5];
-        default:
-            return 0;
-    }
-    
-    
-    return latency;
-}
-
-
 
 void Common::setline(string line){
     this->line=line;
@@ -797,14 +654,17 @@ double Common::getlatency(){
     return this->latency;
 }
 vector<int> Common::getTimeFrame()
-//vector of 3 integers,first is scheduled time in asap,second is scheduled time in alap,third is forced schedule time
+//vector of 2 integers,first is scheduled time in asap,second is scheduled time in alap,third is forced schedule time
 {
     return this->timeFrame;
 }
 void Common::setTimeFrame(int edge){//
-        timeFrame.push_back(edge);
+    timeFrame.push_back(edge);
 }
-void Common::updateAlap(int time){//update alap time after each force-directed iteration
+void Common::setforce(float forces){//
+   force.push_back(forces);
+}
+void Common::updateAlap(int time){
     this->timeFrame.at(1)=time;
 }
 void Common::updateAsap(int time){
