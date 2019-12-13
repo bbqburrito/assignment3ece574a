@@ -91,6 +91,7 @@ vector<Common> Common::ifparser(string lines,  vector<Common>& module, vector<va
     vector<string> to_branches;
     string remaining;
     schedule toplevel;
+    vector<Common> longest_branch;
 
    
     content >> if_dummy >> parenthesis >> if_var;
@@ -422,13 +423,20 @@ vector<Common> Common::ifparser(string lines,  vector<Common>& module, vector<va
         }
     }
 
+    //set longest branch to first branch
+    longest_branch = store_branches.at(0);
+
     //get length of each branch
     for(auto it: store_branches)
     {
-        it.at(0).getTimeFrame().at
+        //compare to temp branch, store longest branch in temp
+        if((it.back().getTimeFrame().at(0)) > (longest_branch.back().getTimeFrame().at(0)))
+        {
+            longest_branch = it;
+        }
     }
 
-
+    return longest_branch;
 
     /*for (j ; j < lines.size(); j++) {
         stringstream string2(lines.at(j));
@@ -482,7 +490,7 @@ vector<Common> Common::ifparser(string lines,  vector<Common>& module, vector<va
             }
         }
     }*/
-    return j;
+    //return j;
     
 }
 //takes a string and and int as parameters, returns string
