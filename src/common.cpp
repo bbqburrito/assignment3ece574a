@@ -1,4 +1,4 @@
-#pragma once
+
 #include "common.h"
 #include "variables.h"
 #include "CDFG_graph.h"
@@ -6,6 +6,7 @@
 //using  endl;
 //using  string;
 using namespace std;
+
 int Common::INC_moduleNum;
 int Common::REG_moduleNum;
 int Common::ADD_moduleNum;
@@ -61,24 +62,29 @@ vector<Common> Common::convert(vector<string> lines, vector<variables> var)
   
 }
 
-//parses if statements into Common vector and adds to an Operation 2d vector
-//throws "not if" if not an if statement.
-int Common::ifparser(string lines,  vector<Common>& module, 
-                        vector<vector<Operation>>& if_branches, int level = 0)
+//parses if statements and schedules them into Common vector
+//recursively parses if statements inside if statement.
+//compares with else and parses if statements recursively with else statements
+//throws "not if" if not an if statement. throws "not operation" if operation is not
+//in correct format
+vector<Common> Common::ifparser(string lines,  vector<Common>& module, int level = 0)
 {
     string not_if_error = "not if";
+    string if_out = "if_out";
     stringstream string2;
     string next;
     stringstream content(lines);
+    string branch;
     string if_dummy, parenthesis, if_var;//variable in condition
-    string var_dummy, op_dummy, 
+    string var_dummy, op_dummy, input_dummy; 
     unsigned int j = 0;
     string elsestate = "";
+    vector<Common> make_module;
     Common to_module;
-    vector<Operation> to_if_branches_row;
-    Operation to_if_branches;
     vector<string> to_inputs;
     size_t it, it_next;
+    vector<string> to_branches;
+    string line;
 
    
     content >> if_dummy >> parenthesis >> if_var;
@@ -91,18 +97,55 @@ int Common::ifparser(string lines,  vector<Common>& module,
     //place if statement at front of Operation vector
     to_inputs.push_back(if_var);
 
-    to_if_branches.setInputs(to_inputs);
-    
-    to_if_branches_row.push_back(to_if_branches);
+    content.ignore(100, '\n');
 
-    common.ignore(100, '\n');               //to next line
+    to_module.setoperation(if_dummy);
 
-    content >> var_dummy;
+    to_module.setopin(to_inputs);
+
+    to_module.setopout(if_out);
+
+    make_module.push_back(to_module);
+
+    //check if an else statement or another if statement exists
+    //if there is neither an if statement nor an else statement,
+    //schedule code as is. Also checks for for statement.
+
+    if((content.str().find("if") != string::npos) && 
+            (content.str().find("else")!= string::npos) &&
+            (content.str().find("for") != string::npos))
+    {
+        //parse all modules and place in Common vector
+        to_inputs.clear();
+        to_module.clear();
+        to_inputs.push_back(if_out);            //place if in inputs of first operation
+        content >> var_dummy;
+
+        while(var_dummy != "}")
+        {
+            content >> op_dummy;
+            if(op_dummy != "=")
+            {
+                throw "not operation";
+            }
+
+            //put next line into string, then parse line
+            std::getline(content, line);
+
+            line = var_dummy + " " + op_dummy + " " + line;
+            Common next_op(line, )
+            parse_operation(make_module, line, to_inputs);
+
+            content >> var_dummy;
+        }
+    }
 
     while(var_dummy != "}")
     {
         to_inputs.clear();
-        to_if_branches.clear();
+
+        //check first string from line
+        content >> var_dummy;
         
         if(var_dummy == "if")               //if another branch, parse that branch
         {
@@ -868,5 +911,21 @@ void Common::updateAlap(int time){//update alap time after each force-directed i
 }
 void Common::updateAsap(int time){
     this->timeFrame.at(0)=time;
+
+}
+
+void Common::clear()
+{
+    uFlag = 0;
+    datawidth = 0;
+    latency = 0;
+    timewidth = 0;
+    op_out.clear();
+    issigned.clear();
+    branches.clear();
+    line.clear();
+    op_in.clear();
+    timeFrame.clear();
+    force.clear();
 
 }

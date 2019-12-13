@@ -337,7 +337,7 @@ void CDFG_graph::buildCDFG()
     //outputs of previous level into next level
     for (auto it: first_row)                 //iterate through all vertices
     {
-        if(it.getType() == "if")
+        if(it.getType() == "if");
 
     }
     //build final nodes in CDFG

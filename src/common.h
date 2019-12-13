@@ -35,8 +35,7 @@ public:
     Common();
     vector<Common> convert(vector<string> to_parse, vector<variables> var);
     Common(string to_parse, vector<variables> var);
-    int ifparser(string lines, vector<Common>& module, 
-                    vector<vector<Operation>& if_branches, int level = 0);
+    vector<Common> ifparser(string lines, vector<Common>& module, int level = 0);
     string parse_variables(string to_convert, int datwidth);
     void getfromvar(vector<variables> var,char* str[100],int index);
     double calcpath(string op,int width);//calculate criticalpath
@@ -61,6 +60,17 @@ public:
     void setforce(float forces);
     void updateAlap(int time);
     void updateAsap(int time);
+    inline vector<string> getBranches() const {
+        return branches;
+    }
+    inline void setBranches(vector<string> to_set) {
+        branches = to_set;
+    }
+    vector<Common> elseparser();
+    void clear();               //clears all members
+    void parse_operation(vector<Common>& parsed, string to_parse, 
+                            vector<string> to_inputs);
+
 
 private:
     static int REG_moduleNum;
@@ -81,6 +91,7 @@ private:
     string op_out;
     string issigned;
     string operation;
+    vector<string> branches;        //hold branches of if statement in module's path
     int datawidth;
     string line;
     double latency;
@@ -90,5 +101,5 @@ private:
     int timewidth;
     vector<float> force;
     
-    int ifparser(vector<)
+    //int ifparser(vector<);
 };
