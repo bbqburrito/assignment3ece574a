@@ -64,7 +64,7 @@ vector<Common> Common::convert(vector<string> lines, vector<variables> var)
 }
 
 //parses if statements and schedules them into Common vector
-//recursively parses if statements inside if statement.
+//recursively parses if statements inside if statement. Returns Common vector with 
 //compares with else and parses if statements recursively with else statements
 //throws "not if" if not an if statement. throws "not operation" if operation is not
 //in correct format. Throws "illegal" if doesn't find else where expected
@@ -493,6 +493,9 @@ vector<Common> Common::ifparser(string lines,  vector<Common>& module, vector<va
     //return j;
     
 }
+
+
+
 //takes a string and and int as parameters, returns string
 //parses string into verilog module statement, then returns that statement
  Common::Common(string to_parse,  vector<variables> var)
