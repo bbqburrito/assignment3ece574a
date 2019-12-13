@@ -1,6 +1,7 @@
 
 #include "common.h"
 #include "variables.h"
+#include "schedule.h"
 #include "CDFG_graph.h"
 //using  cout;
 //using  endl;
@@ -66,8 +67,10 @@ vector<Common> Common::convert(vector<string> lines, vector<variables> var)
 //recursively parses if statements inside if statement.
 //compares with else and parses if statements recursively with else statements
 //throws "not if" if not an if statement. throws "not operation" if operation is not
-//in correct format
-vector<Common> Common::ifparser(string lines,  vector<Common>& module, int level = 0)
+//in correct format. Throws "illegal" if doesn't find else where expected
+//throws "nothing found" if no if statement in passed string
+vector<Common> Common::ifparser(string lines,  vector<Common>& module, vector<variables> var, 
+                                    int req_latency = 0)
 {
     string not_if_error = "not if";
     string if_out = "if_out";
@@ -80,11 +83,14 @@ vector<Common> Common::ifparser(string lines,  vector<Common>& module, int level
     unsigned int j = 0;
     string elsestate = "";
     vector<Common> make_module;
+    vector<Common> to_branch;
+    vector<vector<Common>> store_branches;
     Common to_module;
     vector<string> to_inputs;
     size_t it, it_next;
     vector<string> to_branches;
-    string line;
+    string remaining;
+    schedule toplevel;
 
    
     content >> if_dummy >> parenthesis >> if_var;
@@ -111,9 +117,9 @@ vector<Common> Common::ifparser(string lines,  vector<Common>& module, int level
     //if there is neither an if statement nor an else statement,
     //schedule code as is. Also checks for for statement.
 
-    if((content.str().find("if") != string::npos) && 
-            (content.str().find("else")!= string::npos) &&
-            (content.str().find("for") != string::npos))
+    if((content.str().find("if") == string::npos) && 
+            (content.str().find("else") == string::npos) &&
+            (content.str().find("for") == string::npos))
     {
         //parse all modules and place in Common vector
         to_inputs.clear();
@@ -130,41 +136,294 @@ vector<Common> Common::ifparser(string lines,  vector<Common>& module, int level
             }
 
             //put next line into string, then parse line
-            std::getline(content, line);
+            std::getline(content, remaining);
 
-            line = var_dummy + " " + op_dummy + " " + line;
-            Common next_op(line, )
-            parse_operation(make_module, line, to_inputs);
+            remaining = var_dummy + " " + op_dummy + " " + remaining;
+            Common next_op(remaining, var);
 
+            //add if_out to inputs if first operation in if statement
+            if(!to_inputs.empty())            
+            {
+                to_inputs.clear();
+                to_inputs = next_op.getopin();
+                to_inputs.push_back(if_out);
+            }
+
+            to_inputs.clear();
+            make_module.push_back(next_op);          //place parsed line into Common vector
             content >> var_dummy;
         }
     }
 
-    while(var_dummy != "}")
+    //check for no ifs or fors but else statement
+    else if((content.str().find("if") == string::npos) && 
+                (content.str().find("else") != string::npos) &&
+                (content.str().find("for") == string::npos))
     {
+        //parse all modules and place in Common vector
         to_inputs.clear();
-
-        //check first string from line
+        to_module.clear();
+        to_inputs.push_back(if_out);            //place if in inputs of first operation
         content >> var_dummy;
-        
-        if(var_dummy == "if")               //if another branch, parse that branch
+
+        while(var_dummy != "}")
         {
-            next = var_dummy + content.str();
-            j = ifparser(next, module, if_branches, level + 1);
+            content >> op_dummy;
+            if(op_dummy != "=")
+            {
+                throw "not operation";
+            }
+
+            //put next line into string, then parse line
+            std::getline(content, remaining);
+
+            line = var_dummy + " " + op_dummy + " " + remaining;
+            Common next_op(remaining, var);
+
+            //add if_out to inputs if first operation in if statement
+            if(!to_inputs.empty())            
+            {
+                to_inputs.clear();
+                to_inputs = next_op.getopin();
+                to_inputs.push_back(if_out);
+            }
+
+            to_inputs.clear();
+            make_module.push_back(next_op);          //place parsed line into Common vector
+
+            content >> var_dummy;
         }
 
-        to_inputs.push_back(var_dummy);
+        store_branches.push_back(make_module);
+        make_module.clear();
 
-        //read the rest of the line into string
-        content.getline(next, 256);
+        content.ignore(100, '\n');
+        content >> if_dummy;
 
-        it = next.find_first_of(' ');
+        if(if_dummy != "else")
+        {
+            throw "illegal";
+        }
 
+        content.ignore(256, '\n');
 
+        to_module.clear();
+        to_inputs.clear();
+        to_inputs.push_back(if_out);            //place if in inputs of first operation
+        
+        while(var_dummy != "}")
+        {
+            content >> op_dummy;
+            if(op_dummy != "=")
+            {
+                throw "not operation";
+            }
 
+            //put next line into string, then parse line
+            std::getline(content, remaining);
 
+            remaining = var_dummy + " " + op_dummy + " " + remaining;
+            Common next_op(remaining, var);
+
+            //add if_out to inputs if first operation in if statement
+            if(!to_inputs.empty())            
+            {
+                to_inputs.clear();
+                to_inputs = next_op.getopin();
+                to_inputs.push_back(if_out);
+            }
+
+            to_inputs.clear();
+            make_module.push_back(next_op);          //place parsed line into Common vector
+            content >> var_dummy;
+        }
+        store_branches.push_back(make_module);
+        make_module.clear();       
     }
 
+    //check for ifs and no else but no for statement
+    else if((content.str().find("if") == string::npos) && 
+                (content.str().find("else") != string::npos) &&
+                (content.str().find("for") != string::npos))
+    {
+        //parse all modules and place in Common vector
+        to_inputs.clear();
+        to_module.clear();
+        to_branch.clear();
+        to_inputs.push_back(if_out);            //place if in inputs of first operation
+        content >> var_dummy;
+
+        
+
+        while(var_dummy != "}")
+        {
+            if((var_dummy == "if"))             //if line is if statement, parse recursively
+            {
+                remaining.clear();
+                std::getline(content, remaining, '\0');
+                remaining = var_dummy + " " + remaining;
+                to_branch = ifparser(remaining, module, var);
+                //append to vector
+                make_module.insert(make_module.end(), to_branch.begin(), to_branch.end());
+            }
+
+            content >> op_dummy;
+            if(op_dummy != "=")
+            {
+                throw "not operation";
+            }
+
+            //put next line into string, then parse line
+            std::getline(content, remaining);
+
+            remaining = var_dummy + " " + op_dummy + " " + remaining;
+            Common next_op(remaining, var);
+
+            //add if_out to inputs if first operation in if statement
+            if(!to_inputs.empty())            
+            {
+                to_inputs.clear();
+                to_inputs = next_op.getopin();
+                to_inputs.push_back(if_out);
+            }
+
+            to_inputs.clear();
+            make_module.push_back(next_op);          //place parsed line into Common vector
+
+            content >> var_dummy;
+        }
+
+        store_branches.push_back(make_module);
+        make_module.clear();
+
+        content.ignore(100, '\n');     
+    }
+
+
+    //check for ifs and else but no for statement
+    else if((content.str().find("if") == string::npos) && 
+                (content.str().find("else") == string::npos) &&
+                (content.str().find("for") != string::npos))
+    {
+        //parse all modules and place in Common vector
+        to_inputs.clear();
+        to_module.clear();
+        to_branch.clear();
+        to_inputs.push_back(if_out);            //place if in inputs of first operation
+        content >> var_dummy;
+
+        
+
+        while(var_dummy != "}")
+        {
+            if((var_dummy == "if"))             //if line is if statement, parse recursively
+            {
+                remaining.clear();
+                std::getline(content, remaining, '\0');
+                remaining = var_dummy + " " + remaining;
+                to_branch = ifparser(remaining, module, var);
+                //append to vector
+                make_module.insert(make_module.end(), to_branch.begin(), to_branch.end());
+            }
+
+            content >> op_dummy;
+            if(op_dummy != "=")
+            {
+                throw "not operation";
+            }
+
+            //put next line into string, then parse line
+            std::getline(content, remaining);
+
+            remaining = var_dummy + " " + op_dummy + " " + remaining;
+            Common next_op(remaining, var);
+
+            //add if_out to inputs if first operation in if statement
+            if(!to_inputs.empty())            
+            {
+                to_inputs.clear();
+                to_inputs = next_op.getopin();
+                to_inputs.push_back(if_out);
+            }
+
+            to_inputs.clear();
+            make_module.push_back(next_op);          //place parsed line into Common vector
+
+            content >> var_dummy;
+        }
+
+        store_branches.push_back(make_module);
+        make_module.clear();
+
+        content.ignore(100, '\n');
+        content >> if_dummy;
+
+        if(if_dummy != "else")
+        {
+            throw "illegal";
+        }
+
+        to_module.clear();
+        to_inputs.clear();
+        to_inputs.push_back(if_out);            //place if in inputs of first operation
+        var_dummy = if_dummy;
+        while(var_dummy != "}")
+        {
+            if((var_dummy == "if"))             //if line is if statement, parse recursively
+            {
+                remaining.clear();
+                std::getline(content, remaining, '\0');
+                remaining = var_dummy + " " + remaining;
+                to_branch = ifparser(remaining, module, var);
+                //append to vector
+                make_module.insert(make_module.end(), to_branch.begin(), to_branch.end());
+            }
+
+            content >> op_dummy;
+            if(op_dummy != "=")
+            {
+                throw "not operation";
+            }
+
+            //put next line into string, then parse line
+            std::getline(content, remaining);
+
+            remaining = var_dummy + " " + op_dummy + " " + remaining;
+            Common next_op(remaining, var);
+
+            //add if_out to inputs if first operation in if statement
+            if(!to_inputs.empty())            
+            {
+                to_inputs.clear();
+                to_inputs = next_op.getopin();
+                to_inputs.push_back(if_out);
+            }
+
+            to_inputs.clear();
+            make_module.push_back(next_op);          //place parsed line into Common vector
+            content >> var_dummy;
+        }
+        store_branches.push_back(make_module);
+        make_module.clear();       
+    }
+
+    if(store_branches.empty())
+    {
+        throw "nothing found";
+    }
+
+    for(auto it: store_branches)
+    {
+        for(auto jt: it)
+        {
+            toplevel.forceschedule(it, req_latency);
+        }
+    }
+
+    for(auto it: store_branches)
+    {
+        it.at(0).getTimeFrame().at
+    }
 
 
 
@@ -870,35 +1129,35 @@ void Common::setdelay(double delay){
     this->latency=delay;
 }
 
-string Common::getopout(){
+string Common::getopout() const {
     return this->op_out;
 }
-string Common::getoperation(){
+string Common::getoperation() const {
     return this->operation;
 }
-int Common::getdatawidth(){
+int Common::getdatawidth() const {
     return this->datawidth;
     
 }
-int Common::gettimewidth(){
+int Common::gettimewidth() const {
     this->timewidth=this->timeFrame.at(1)-this->timeFrame.at(0)+1;
     return this->timewidth;
     
 }
 
-string Common::getSigned(){
+string Common::getSigned() const {
     return this->issigned;
 }
-string Common::getline(){
+string Common::getline() const{
     return this->line;
 }
-vector<string> Common::getopin(){
+vector<string> Common::getopin() const {
     return this->op_in;
 }
-double Common::getlatency(){
+double Common::getlatency() const {
     return this->latency;
 }
-vector<int> Common::getTimeFrame()
+vector<int> Common::getTimeFrame() const
 //vector of 3 integers,first is scheduled time in asap,second is scheduled time in alap,third is forced schedule time
 {
     return this->timeFrame;

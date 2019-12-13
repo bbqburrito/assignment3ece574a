@@ -14,6 +14,8 @@
 #include <algorithm>
 #include <cstdio>
 #include "CDFG_graph.h"
+#include "variables.h"
+#include <sstream>
 using std::string;
 using namespace std;
 //class Module        //not used unless we find a need for something to contain
@@ -35,23 +37,40 @@ public:
     Common();
     vector<Common> convert(vector<string> to_parse, vector<variables> var);
     Common(string to_parse, vector<variables> var);
-    vector<Common> ifparser(string lines, vector<Common>& module, int level = 0);
+    inline void operator= (const Common &to_assign) {
+        op_out = to_assign.getopout();
+        issigned = to_assign.getSigned();
+        operation = to_assign.getoperation();
+        branches = to_assign.getBranches();
+        datawidth = to_assign.getdatawidth();
+        line = to_assign.getline();
+        latency = to_assign.getlatency();
+        op_in = to_assign.getopin();
+        timeFrame = to_assign.getTimeFrame();
+        timewidth = to_assign.gettimewidth();
+        force = to_assign.getForce();
+    }
+    vector<Common> ifparser(string lines, vector<Common>& module, vector<variables> var, 
+                                int level = 0);
     string parse_variables(string to_convert, int datwidth);
     void getfromvar(vector<variables> var,char* str[100],int index);
     double calcpath(string op,int width);//calculate criticalpath
-    string getopout();
-    string getoperation();
-    int getdatawidth();
-    int gettimewidth();//get scheduled time width
-    string getSigned();
-    string getline();
-    double getlatency();
+    string getopout() const;
+    string getoperation() const;
+    int getdatawidth() const;
+    int gettimewidth() const;//get scheduled time width
+    string getSigned() const;
+    string getline() const;
+    double getlatency() const;
+    inline vector<float> getForce() const {
+        return force;
+    }
     void setdelay(double delay);
-    vector<int> getTimeFrame();
+    vector<int> getTimeFrame() const;
     void setTimeFrame(int edge);
     //void setoperation(string operation);
     void setoperation(string operation);
-    vector<string> getopin();
+    vector<string> getopin() const;
     void setline(string line);
     void setopout(string op_out);
     void setsign(string issigned);
