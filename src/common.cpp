@@ -407,11 +407,13 @@ vector<Common> Common::ifparser(string lines,  vector<Common>& module, vector<va
         make_module.clear();       
     }
 
+    //if there is nothing in the Common 2d vector, throw "nothing founc"
     if(store_branches.empty())
     {
         throw "nothing found";
     }
 
+    //schedule each branch
     for(auto it: store_branches)
     {
         for(auto jt: it)
@@ -420,6 +422,7 @@ vector<Common> Common::ifparser(string lines,  vector<Common>& module, vector<va
         }
     }
 
+    //get length of each branch
     for(auto it: store_branches)
     {
         it.at(0).getTimeFrame().at
