@@ -119,6 +119,4 @@ private:
     //vector of 2 integers,first is scheduled time in asap,second is scheduled time in alap,third is forced schedule time
     int timewidth;
     vector<float> force;
-    
-    //int ifparser(vector<);
 };
