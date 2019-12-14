@@ -14,16 +14,45 @@
 //#include "common.h"
 #include <map>
 using namespace std;
-
+//int errortest(vector<Common> mod,vector<variables> var){
+//    unsigned int i;
+//     unsigned int k;
+//     unsigned int j;
+//    int found;
+//    for(i=0;i<mod.size();i++){
+//        found=0;
+//        for(k=0;k<mod.at(i).getopin().size();k++){
+//            for(j=1;j<var.size();j++){
+//                if(mod.at(i).getopin().at(k)==var.at(j).getName()){
+//                    found=1;
+//                    //continue;
+//                }
+//
+//            }
+////            if(found==0){
+////                cout<<"Error file"<<endl;
+////                return 0;
+////            }
+//        }
+//        found=0;
+//        for(j=1;j<var.size();j++){
+//            if(mod.at(i).getopout()==var.at(j).getName()){
+//                found=1;
+//               // continue;
+//            }
+//
+//       }
+//
+//    }
+//    return found;
+//}
 int main(int argc, char* argv[]){
     //argv[1]="474a_circuit3.txt";//need to change it back!!!!!!!!!!!!!!!!!
     if (argc != 4)
     {
         
         cout << "Usage:\thlsyn cFile latency verilogFile" << endl;
-        //        cout << "\tcFile - The  netlist you wish to convert." << endl;
-        //        cout << "\tlatency - How long the graph has to be scheduled." << endl;
-        //        cout << "\tverilogFile - The path to for the output verilogFile" << endl;
+        
         return 0;
     }
     int latency;
@@ -54,7 +83,7 @@ int main(int argc, char* argv[]){
 
     unsigned int j;
     unsigned int k;
-    unsigned int found;
+     int found;
     vector<string> lines;//store all the module lines together,then parse them one by one(needed for if parser)
     if(filename!=NULL){
     
@@ -102,36 +131,68 @@ int main(int argc, char* argv[]){
             }
             netlist.close();
             /////////////////////determine error//////////////
-                        for(i=0;i<mod.size();i++){
-                            found=0;
-                            for(k=0;k<mod.at(i).getopin().size();k++){
-                                for(j=1;j<var.size();j++){
-                                    if(mod.at(i).getopin().at(k)==var.at(j).getName()){
-                                        found=1;
-                                        break;
-                                    }
-                               else{
-                                   found=0;
-                                  
-                               }
-                                } if(found==0){
-                                        cout<<"Error file"<<endl;
-                                         return 0;
-                                    }
-                            }
-                            for(j=1;j<var.size();j++){
-                                if(mod.at(i).getopout()==var.at(j).getName()){
-                                    found=1;
-                                    break;
-                                }else{
-                                    found=0;
-                                }
-                            }if(found==0){
-                                cout<<"Error file"<<endl;
-                                return 0;
-                            }
+//            if(errortest(mod, var)!=1){
+//                cout<<"Error file"<<endl;
+//                                                   return 0;
+//            }
+//                        for(i=0;i<mod.size();i++){
+//                            found=0;
+//                            for(k=0;k<mod.at(i).getopin().size();k++){
+//                                for(j=1;j<var.size();j++){
+//                                    if(mod.at(i).getopin().at(k)==var.at(j).getName()){
+//                                        found=1;
+//                                        continue;
+//                                    }
+//
+//                                } if(found==0){
+//                                        cout<<"Error file"<<endl;
+//                                      return 0;
+//                                    }
+//                            }
+//                            found=0;
+//                            for(j=1;j<var.size();j++){
+//                                if(mod.at(i).getopout()==var.at(j).getName()){
+//                                    found=1;
+//                                    continue;
+//                               }
+//
+//                            }if(found==0){
+//                                cout<<"Error file"<<endl;
+//                                return 0;
+//                            }
+//                        }
+            for(i=0;i<mod.size();i++){
+                
+                for(k=0;k<mod.at(i).getopin().size();k++){
+                    found=0;
+                    for(j=1;j<var.size();j++){
+                        if(mod.at(i).getopin().at(k)==var.at(j).getName()){
+                            found=1;
+                            break;
                         }
-            
+//                        else{
+//                            found=0;
+//
+//                        }
+                    } if(found==0){
+                        cout<<"Error file"<<endl;
+                        return 0;
+                    }
+                }
+                found=0;
+                for(j=1;j<var.size();j++){
+                    if(mod.at(i).getopout()==var.at(j).getName()){
+                        found=1;
+                        break;
+                 }
+                        //else{
+//                        found=0;
+//                    }
+                }if(found==0){
+                    cout<<"Error file"<<endl;
+                    return 0;
+                }
+            }
             if(Contents.size()==0){
                  cout<<"Empty file"<<endl;
                 return 0;
@@ -214,7 +275,8 @@ int main(int argc, char* argv[]){
             verilog<<"S"<<j<<": begin"<<endl;
             for(i=1;i<numstate;i++){
                 for(k=0;k<mod.size();k++){
-                    if (i == mod.at(k).getTimeFrame().at(0)) {
+                    size=mod.at(k).getTimeFrame().at(0);
+                    if (i == size) {
                         verilog << "\t" << mod.at(k).getline() << ";" << endl;
                     }
                     
