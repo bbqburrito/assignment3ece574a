@@ -162,6 +162,7 @@ vector<Common> Common::ifparser(string lines,  vector<vector<Common>>& store_bra
                 to_inputs.clear();
                 to_inputs = next_op.getopin();
                 to_inputs.push_back(if_out);
+                next_op.setifflag(1);
             }
 
             to_inputs.clear();
@@ -201,6 +202,7 @@ vector<Common> Common::ifparser(string lines,  vector<vector<Common>>& store_bra
                 to_inputs.clear();
                 to_inputs = next_op.getopin();
                 to_inputs.push_back(if_out);
+                next_op.setifflag(1);
             }
 
             to_inputs.clear();
@@ -246,6 +248,7 @@ vector<Common> Common::ifparser(string lines,  vector<vector<Common>>& store_bra
                 to_inputs.clear();
                 to_inputs = next_op.getopin();
                 to_inputs.push_back(if_out);
+                next_op.setifflag(1);
             }
 
             to_inputs.clear();
@@ -300,6 +303,7 @@ vector<Common> Common::ifparser(string lines,  vector<vector<Common>>& store_bra
                 to_inputs.clear();
                 to_inputs = next_op.getopin();
                 to_inputs.push_back(if_out);
+                next_op.setifflag(1);
             }
 
             to_inputs.clear();
@@ -359,6 +363,7 @@ vector<Common> Common::ifparser(string lines,  vector<vector<Common>>& store_bra
                 to_inputs.clear();
                 to_inputs = next_op.getopin();
                 to_inputs.push_back(if_out);
+                next_op.setifflag(1);
             }
 
             to_inputs.clear();
@@ -412,6 +417,7 @@ vector<Common> Common::ifparser(string lines,  vector<vector<Common>>& store_bra
                 to_inputs.clear();
                 to_inputs = next_op.getopin();
                 to_inputs.push_back(if_out);
+                next_op.setifflag(1);
             }
 
             to_inputs.clear();
