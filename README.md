@@ -23,5 +23,7 @@ Our program convert a C-like behavioral description into a scheduled high-level 
 4. Contribution
 
 Yiming Wang:variable parser,force directed schedule
+
 Yong He:Asap,alap schedule function
+
 William Renton Boyd :CDFG graph, if statement,for loop
