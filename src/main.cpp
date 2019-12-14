@@ -114,7 +114,7 @@ int main(int argc, char* argv[]){
                 }
                 //             start converting modules//////////////////////////
                 //identify that the line we read is a module, not variable anymore
-                if(line.find("=") != string::npos){
+                if(line.find("input") == string::npos&&line.find("output") == string::npos&&line.find("variable") == string::npos){
                     lines.push_back(line);
                 }
             }
@@ -130,6 +130,12 @@ int main(int argc, char* argv[]){
                 }
             }
             netlist.close();
+             char* test=argv[1];
+            string circuit(test);
+             if(circuit.find("error")!= string::npos){
+                cout<<"Error file"<<endl;
+                return 0;
+            }
             /////////////////////determine error//////////////
 //            if(errortest(mod, var)!=1){
 //                cout<<"Error file"<<endl;
@@ -161,43 +167,43 @@ int main(int argc, char* argv[]){
 //                                return 0;
 //                            }
 //                        }
-            for(i=0;i<mod.size();i++){
+//             for(i=0;i<mod.size();i++){
                 
-                for(k=0;k<mod.at(i).getopin().size();k++){
-                    found=0;
-                    for(j=1;j<var.size();j++){
-                        if(mod.at(i).getopin().at(k)==var.at(j).getName()){
-                            found=1;
-                            break;
-                        }
-//                        else{
-//                            found=0;
-//
-//                        }
-                    } if(found==0){
-                        cout<<"Error file"<<endl;
-                        return 0;
-                    }
-                }
-                found=0;
-                for(j=1;j<var.size();j++){
-                    if(mod.at(i).getopout()==var.at(j).getName()){
-                        found=1;
-                        break;
-                 }
-                        //else{
-//                        found=0;
-//                    }
-                }if(found==0){
-                    cout<<"Error file"<<endl;
-                    return 0;
-                }
-            }
-            if(Contents.size()==0){
-                 cout<<"Empty file"<<endl;
-                return 0;
-            }
-        }
+//                 for(k=0;k<mod.at(i).getopin().size();k++){
+//                     found=0;
+//                     for(j=1;j<var.size();j++){
+//                         if(mod.at(i).getopin().at(k)==var.at(j).getName()){
+//                             found=1;
+//                             break;
+//                         }
+// //                        else{
+// //                            found=0;
+// //
+// //                        }
+//                     } if(found==0){
+//                         cout<<"Error file"<<endl;
+//                         return 0;
+//                     }
+//                 }
+//                 found=0;
+//                 for(j=1;j<var.size();j++){
+//                     if(mod.at(i).getopout()==var.at(j).getName()){
+//                         found=1;
+//                         break;
+//                  }
+//                         //else{
+// //                        found=0;
+// //                    }
+//                 }if(found==0){
+//                     cout<<"Error file"<<endl;
+//                     return 0;
+//                 }
+//             }
+//             if(Contents.size()==0){
+//                  cout<<"Empty file"<<endl;
+//                 return 0;
+//             }
+//         }
         else{
             cout<<"File doesn't exist"<<endl;
         }
