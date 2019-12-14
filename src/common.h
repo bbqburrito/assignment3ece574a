@@ -50,8 +50,8 @@ public:
         timewidth = to_assign.gettimewidth();
         force = to_assign.getForce();
     }
-    vector<Common> ifparser(string lines, vector<Common>& module, vector<variables> var, 
-                                int level = 0);
+    vector<Common> ifparser(string lines, vector<vector<Common>>& store_branches, 
+                                vector<variables> var, int level = 0);
     string parse_variables(string to_convert, int datwidth);
     void getfromvar(vector<variables> var,char* str[100],int index);
     double calcpath(string op,int width);//calculate criticalpath

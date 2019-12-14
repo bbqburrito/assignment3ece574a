@@ -53,7 +53,7 @@ vector<Common> Common::convert(vector<string> lines, vector<variables> var)
         // if(to_parse.find("=") != string::npos){
         if (lines.at(i).find("if") != string::npos)
         {
-            i = ifparser(i, lines, module);//
+            //i = ifparser(i, lines, module);//
         }
         else{
             eachmod=Common(lines.at(i), var);
@@ -70,8 +70,8 @@ vector<Common> Common::convert(vector<string> lines, vector<variables> var)
 //throws "not if" if not an if statement. throws "not operation" if operation is not
 //in correct format. Throws "illegal" if doesn't find else where expected
 //throws "nothing found" if no if statement in passed string
-vector<Common> Common::ifparser(string lines,  vector<Common>& module, vector<variables> var, 
-                                    int req_latency = 0)
+vector<Common> Common::ifparser(string lines,  vector<vector<Common>>& store_brancnhes,
+                                    vector<variables> var, int req_latency = 0)
 {
     string not_if_error = "not if";
     string if_out = "if_out";
@@ -102,18 +102,20 @@ vector<Common> Common::ifparser(string lines,  vector<Common>& module, vector<va
         throw not_if_error;
     }
 
-    //place if statement at front of Operation vector
-    to_inputs.push_back(if_var);
-
     content.ignore(100, '\n');
 
-    to_module.setoperation(if_dummy);
-
-    to_module.setopin(to_inputs);
-
-    to_module.setopout(if_out);
-
-    make_module.push_back(to_module);
+    //place if statement at front of Operation vector - leave if statement out of vector
+//   to_inputs.push_back(if_var);
+//
+//   content.ignore(100, '\n');
+//
+//    to_module.setoperation(if_dummy);
+//
+//    to_module.setopin(to_inputs);
+//
+//    to_module.setopout(if_out);
+//
+//    make_module.push_back(to_module);
 
     //check if an else statement or another if statement exists
     //if there is neither an if statement nor an else statement,
@@ -264,7 +266,7 @@ vector<Common> Common::ifparser(string lines,  vector<Common>& module, vector<va
                 remaining.clear();
                 std::getline(content, remaining, '\0');
                 remaining = var_dummy + " " + remaining;
-                to_branch = ifparser(remaining, module, var);
+                to_branch = ifparser(remaining, store_branches, var);
                 //append to vector
                 make_module.insert(make_module.end(), to_branch.begin(), to_branch.end());
             }
@@ -323,7 +325,7 @@ vector<Common> Common::ifparser(string lines,  vector<Common>& module, vector<va
                 remaining.clear();
                 std::getline(content, remaining, '\0');
                 remaining = var_dummy + " " + remaining;
-                to_branch = ifparser(remaining, module, var);
+                to_branch = ifparser(remaining, store_branches, var);
                 //append to vector
                 make_module.insert(make_module.end(), to_branch.begin(), to_branch.end());
             }
@@ -376,7 +378,7 @@ vector<Common> Common::ifparser(string lines,  vector<Common>& module, vector<va
                 remaining.clear();
                 std::getline(content, remaining, '\0');
                 remaining = var_dummy + " " + remaining;
-                to_branch = ifparser(remaining, module, var);
+                to_branch = ifparser(remaining, store_branches, var);
                 //append to vector
                 make_module.insert(make_module.end(), to_branch.begin(), to_branch.end());
             }
@@ -1005,8 +1007,8 @@ int Common::getdatawidth() const {
     
 }
 int Common::gettimewidth() const {
-    this->timewidth=this->timeFrame.at(1)-this->timeFrame.at(0)+1;
-    return this->timewidth;
+    //this->timewidth=this->timeFrame.at(1)-this->timeFrame.at(0)+1;
+    return this->timeFrame.at(1)-this->timeFrame.at(0)+1;
     
 }
 
