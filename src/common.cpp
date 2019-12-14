@@ -61,14 +61,16 @@ vector<Common> Common::convert(vector<string> lines, vector<variables> var, int 
         // if(to_parse.find("=") != string::npos){
         if (lines.at(i).find("if") != string::npos)
         {
-            hold_mod = ifparser(to_lines_ifparser, store_branches, var, i, latency);
+            hold_mod = ifparser(to_lines_ifparser, store_branches, var, latency);
+            i = hold_mod.back().getTimeFrame().at(0);
             //i = ifparser(i, lines, module);//
         }
-        else{
+        else {
             eachmod=Common(lines.at(i), var);
             converted = eachmod.getline();//get converted line
             module.push_back(eachmod);//add each module into a vector
-        }}
+        }
+    }
     return module;
   
 }
@@ -80,7 +82,7 @@ vector<Common> Common::convert(vector<string> lines, vector<variables> var, int 
 //in correct format. Throws "illegal" if doesn't find else where expected
 //throws "nothing found" if no if statement in passed string
 vector<Common> Common::ifparser(string lines,  vector<vector<Common>>& store_brancnhes,
-                                    vector<variables> var, int& long_branch_latency, int req_latency = 0)
+                                    vector<variables> var, int req_latency)
 {
     string not_if_error = "not if";
     string if_out = "if_out";
@@ -447,8 +449,6 @@ vector<Common> Common::ifparser(string lines,  vector<vector<Common>>& store_bra
             longest_branch = it;
         }
     }
-
-    long_branch_latency = longest_branch.back().getTimeFrame().at(0);
 
     return longest_branch;
 
@@ -1019,8 +1019,11 @@ int Common::getdatawidth() const {
 }
 int Common::gettimewidth() const {
     //this->timewidth=this->timeFrame.at(1)-this->timeFrame.at(0)+1;
-    return this->timeFrame.at(1)-this->timeFrame.at(0)+1;
-    
+    if(this->timeFrame.size > 2)
+    {
+        return this->timeFrame.at(1)-this->timeFrame.at(0)+1;
+    }
+    return 0;
 }
 
 string Common::getSigned() const {
