@@ -89,6 +89,8 @@ public:
     void clear();               //clears all members
     void parse_operation(vector<Common>& parsed, string to_parse, 
                             vector<string> to_inputs);
+    void schedule_ifs(vector<vector<Common>> &to_schedule, vector<Common>& longest, 
+                        vector<Common>& mod, int latency);
 
 
 private:

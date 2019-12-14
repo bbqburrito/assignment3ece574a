@@ -75,6 +75,62 @@ vector<Common> Common::convert(vector<string> lines, vector<variables> var, int 
   
 }
 
+//schedule all branches with latency of longest branch
+void Common::schedule_ifs(vector<vector<Common>> &to_schedule, vector<Common>& longest, 
+                            vector<Common>& mod, int latency)
+{
+    vector<Common> before_if;
+    vector<Common> after_if;
+    vector<Common> make_schedule;
+    schedule toplevel;
+    Common if_block;
+    int if_latency;
+    bool end_longest = false;
+
+    //populate before_if operations
+    for(auto it: mod)
+    {
+        if(it.getoperation() == "if")
+        {
+            before_if.push_back(it);
+            break;
+        }
+
+        before_if.push_back(it);
+    }
+
+    //populate after_if operations
+    for(auto it: mod)
+    {
+        if(end_longest)
+        {
+            after_if.push_back(it);
+        }
+        
+        if(it.getopout() == longest.back().getopout())
+        {
+            end_longest = true;
+        }
+    }
+
+    toplevel.forceschedule(longest, latency);
+
+    if_latency = longest.front().getTimeFrame().at(0) - longest.back().getTimeFrame().at(0);
+
+    for(auto it: to_schedule)
+    {
+        if_block.clear();
+        make_schedule = it;
+        toplevel.forceschedule(make_schedule, if_latency);        //schedule branch with latency
+
+        if_block.setoperation("if_block");                          //build if_block
+        if_block.setopout(make_schedule.back().getopout());
+        if_block.setopin(make_schedule.front().getopin());
+                
+    }
+}
+
+
 //parses if statements and schedules them into Common vector
 //recursively parses if statements inside if statement. Returns Common vector with 
 //compares with else and parses if statements recursively with else statements
@@ -139,7 +195,7 @@ vector<Common> Common::ifparser(string lines,  vector<vector<Common>>& store_bra
         //parse all modules and place in Common vector
         to_inputs.clear();
         to_module.clear();
-        to_inputs.push_back(if_out);            //place if in inputs of first operation
+        //to_inputs.push_back(if_out);            //place if in inputs of first operation
         content >> var_dummy;
 
         while(var_dummy != "}")
@@ -1019,7 +1075,7 @@ int Common::getdatawidth() const {
 }
 int Common::gettimewidth() const {
     //this->timewidth=this->timeFrame.at(1)-this->timeFrame.at(0)+1;
-    if(this->timeFrame.size > 2)
+    if(this->timeFrame.size() > 2)
     {
         return this->timeFrame.at(1)-this->timeFrame.at(0)+1;
     }
