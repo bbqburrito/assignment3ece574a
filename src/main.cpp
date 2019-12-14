@@ -118,7 +118,7 @@ int main(int argc, char* argv[]){
                     lines.push_back(line);
                 }
             }
-            mod=to_test.convert(lines, var);//module parser
+            mod=to_test.convert(lines, var, latency);//module parser
             
             //  mod.push_back(to_test);//mod is a vector of modules
             for(i=0;i<mod.size();i++){

@@ -35,7 +35,7 @@ public:
     //explicit Common(const Common &obj);
     //Common operator = (Common const &obj);
     Common();
-    vector<Common> convert(vector<string> to_parse, vector<variables> var);
+    vector<Common> convert(vector<string> to_parse, vector<variables> var,  int latency);
     Common(string to_parse, vector<variables> var);
     inline void operator= (const Common &to_assign) {
         op_out = to_assign.getopout();
@@ -51,7 +51,7 @@ public:
         force = to_assign.getForce();
     }
     vector<Common> ifparser(string lines, vector<vector<Common>>& store_branches, 
-                                vector<variables> var, int level = 0);
+                                vector<variables> var, int& long_branch_latency, int latency = 0);
     string parse_variables(string to_convert, int datwidth);
     void getfromvar(vector<variables> var,char* str[100],int index);
     double calcpath(string op,int width);//calculate criticalpath

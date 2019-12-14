@@ -37,14 +37,22 @@ Common::Common()
 }
 //to do: throw exceptions when empty and when any line cannot be converted to verilog
 //evaluate whether to divide parsing routines into functions
-vector<Common> Common::convert(vector<string> lines, vector<variables> var)
+vector<Common> Common::convert(vector<string> lines, vector<variables> var, int latency)
 {unsigned int i;
     vector<Common> module;
     Common eachmod;
     
     string no_input = "//nothing";            //error message
     string converted;                       //contains return value
-    
+
+    string to_lines_ifparser;               //change vector<string> to string for if parser
+    vector<vector<Common>> store_branches;
+    vector<Common> hold_mod;
+
+    for(auto it: lines)                     //prepare lines vector for ifparser
+    {
+        to_lines_ifparser += it + "\n";
+    }
     //    if(lines.empty())                    //check for empty
     //    {
     //        return no_input;                    //to do: set error codes
@@ -53,6 +61,7 @@ vector<Common> Common::convert(vector<string> lines, vector<variables> var)
         // if(to_parse.find("=") != string::npos){
         if (lines.at(i).find("if") != string::npos)
         {
+            hold_mod = ifparser(to_lines_ifparser, store_branches, var, i, latency);
             //i = ifparser(i, lines, module);//
         }
         else{
@@ -71,7 +80,7 @@ vector<Common> Common::convert(vector<string> lines, vector<variables> var)
 //in correct format. Throws "illegal" if doesn't find else where expected
 //throws "nothing found" if no if statement in passed string
 vector<Common> Common::ifparser(string lines,  vector<vector<Common>>& store_brancnhes,
-                                    vector<variables> var, int req_latency = 0)
+                                    vector<variables> var, int& long_branch_latency, int req_latency = 0)
 {
     string not_if_error = "not if";
     string if_out = "if_out";
@@ -438,6 +447,8 @@ vector<Common> Common::ifparser(string lines,  vector<vector<Common>>& store_bra
             longest_branch = it;
         }
     }
+
+    long_branch_latency = longest_branch.back().getTimeFrame().at(0);
 
     return longest_branch;
 
